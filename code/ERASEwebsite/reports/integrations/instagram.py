@@ -1,10 +1,3 @@
-"""Small, testable client for the Instagram Graph API.
-
-The client deliberately knows nothing about Django models. This keeps API
-access and metric aggregation easy to test and leaves token/account setup to
-environment variables or the management command.
-"""
-
 from collections import defaultdict
 from datetime import date, datetime
 import json
@@ -84,7 +77,6 @@ class InstagramGraphClient:
 
 
 def aggregate_media_metrics(media, followers=None):
-	"""Aggregate post metrics into one report row per calendar date."""
 	totals = defaultdict(lambda: {"followers": followers, "post_reach": 0, "likes": 0, "shares": 0, "comments": 0})
 	for item in media:
 		posted_at = _parse_timestamp(item.get("timestamp"))

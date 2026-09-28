@@ -11,8 +11,11 @@
         btn.addEventListener('click', () => activateTab(btn.dataset.tab));
     });
 
-    // Initial tab: prefer context set active_tab (handles form errors), then URL param
-    const serverTab = "{{ active_tab }}";
+    // Initial tab is rendered into HTML; static JavaScript is not Django-templated.
+    const tabNavigation = document.querySelector('.report-tabs');
+    const serverTab = tabNavigation ? tabNavigation.dataset.initialTab : 'fundraising';
     const urlTab    = new URLSearchParams(window.location.search).get('tab');
-    activateTab(urlTab || serverTab || 'fundraising');
+    const validTabs = new Set(['fundraising', 'workshops', 'students', 'social']);
+    const initialTab = validTabs.has(urlTab) ? urlTab : (validTabs.has(serverTab) ? serverTab : 'fundraising');
+    activateTab(initialTab);
 })();

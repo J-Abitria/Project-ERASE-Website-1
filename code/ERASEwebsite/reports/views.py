@@ -1,6 +1,6 @@
 from io import BytesIO
 
-from django.http import HttpResponse
+from django.http import HttpResponse, HttpResponseBadRequest
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse
 from django.views import View
@@ -11,7 +11,7 @@ from reportlab.lib import colors
 from reportlab.lib.pagesizes import letter
 from reportlab.lib.styles import getSampleStyleSheet
 from reportlab.lib.units import inch
-from reportlab.platypus import SimpleDocTemplate, Spacer, Table, TableStyle, Paragraph, PageBreak
+from reportlab.platypus import SimpleDocTemplate, Spacer, Table, TableStyle, Paragraph
 
 from .models import FundingEntry, WorkshopAttendance, StudentSupport, SocialMediaMetric
 from .forms import FundingEntryForm, WorkshopAttendanceForm, StudentSupportForm, SocialMediaMetricForm
@@ -32,9 +32,12 @@ class StaffRequiredMixin(UserPassesTestMixin):
 class ReportsDashboardView(LoginRequiredMixin, StaffRequiredMixin, View):
     """Class-Based View for viewing and managing reporting dashboard tabs."""
     template_name = 'reports.html'
+    valid_tabs = {'fundraising', 'workshops', 'students', 'social'}
 
     def get(self, request, *args, **kwargs):
         active_tab = request.GET.get('tab', 'fundraising')
+        if active_tab not in self.valid_tabs:
+            active_tab = 'fundraising'
         year_filter = request.GET.get('year', '')
         type_filter = request.GET.get('fund_type', '')
         platform_filter = request.GET.get('platform', '')
@@ -117,16 +120,22 @@ class ReportsDashboardView(LoginRequiredMixin, StaffRequiredMixin, View):
 
 
 class ReportsPdfView(LoginRequiredMixin, StaffRequiredMixin, View):
-    """Generate a PDF containing the current reports data and filters."""
+    """Generate a PDF for one report type and its active filters."""
 
     def get(self, request, *args, **kwargs):
+        report_type = request.GET.get('report', 'fundraising')
+        report_titles = {
+            'fundraising': 'Fundraising',
+            'workshops': 'Workshop Attendance',
+            'students': 'Students Supported',
+            'social': 'Social Media Metrics',
+        }
+        if report_type not in report_titles:
+            return HttpResponseBadRequest('Unknown report type.')
+
         year_filter = request.GET.get('year', '')
         type_filter = request.GET.get('fund_type', '')
         platform_filter = request.GET.get('platform', '')
-        fundraising = ReportsAnalyticsService.get_fundraising_data(year_filter, type_filter)
-        workshops = ReportsAnalyticsService.get_workshops_data()
-        students = ReportsAnalyticsService.get_student_support_data()
-        social = ReportsAnalyticsService.get_social_media_data(platform_filter)
 
         buffer = BytesIO()
         document = SimpleDocTemplate(
@@ -139,77 +148,87 @@ class ReportsPdfView(LoginRequiredMixin, StaffRequiredMixin, View):
         )
         styles = getSampleStyleSheet()
         story = [
-            Paragraph('Project ERASE Reports', styles['Title']),
-            Paragraph(
-                'Filters: year={}; funding type={}; platform={}'.format(
-                    year_filter or 'All', type_filter or 'All', platform_filter or 'All'
-                ),
-                styles['Normal'],
-            ),
+            Paragraph('Project ERASE — {}'.format(report_titles[report_type]), styles['Title']),
             Spacer(1, 0.2 * inch),
         ]
 
-        story.extend([
-            Paragraph('Fundraising', styles['Heading2']),
-            Paragraph(
-                'Total raised: ${} | Donations: ${} | Grants: ${}'.format(
-                    fundraising['funding_total'],
-                    fundraising['donations_total'],
-                    fundraising['grants_total'],
+        if report_type == 'fundraising':
+            fundraising = ReportsAnalyticsService.get_fundraising_data(year_filter, type_filter)
+            story.extend([
+                Paragraph(
+                    'Filters: year={}; funding type={}'.format(
+                        year_filter or 'All', type_filter or 'All'
+                    ),
+                    styles['Normal'],
                 ),
-                styles['Normal'],
-            ),
-            self._table(
-                ['Date', 'Source', 'Type', 'Amount', 'Notes'],
-                [
-                    [entry.date, entry.source, entry.get_fund_type_display(), '${}'.format(entry.amount), entry.notes or '-']
-                    for entry in fundraising['funding_entries']
-                ],
-            ),
-            PageBreak(),
-            Paragraph('Workshop Attendance', styles['Heading2']),
-            Paragraph(
-                'Workshops: {} | Attendees: {} | Average attendees: {}'.format(
-                    workshops['workshop_count'], workshops['total_attendees'], workshops['avg_attendees']
+                Paragraph(
+                    'Total raised: ${} | Donations: ${} | Grants: ${}'.format(
+                        fundraising['funding_total'],
+                        fundraising['donations_total'],
+                        fundraising['grants_total'],
+                    ),
+                    styles['Normal'],
                 ),
-                styles['Normal'],
-            ),
-            self._table(
-                ['Workshop', 'Date', 'Location', 'Attendees', 'Notes'],
-                [
-                    [entry.workshop_name, entry.date, entry.location or '-', entry.attendee_count, entry.notes or '-']
-                    for entry in workshops['workshops']
-                ],
-            ),
-            Paragraph('Students Supported', styles['Heading2']),
-            Paragraph(
-                'Current year: {} | All-time total: {}'.format(
-                    students['current_year_students'], students['all_time_students']
-                ),
-                styles['Normal'],
-            ),
-            self._table(
-                ['Year', 'Students Supported', 'Notes'],
-                [
-                    [entry.year, entry.student_count, entry.notes or '-']
-                    for entry in students['student_entries']
-                ],
-            ),
-            Paragraph('Social Media', styles['Heading2']),
-            self._table(
-                ['Platform', 'Date', 'Followers', 'Reach', 'Likes', 'Shares', 'Comments', 'Notes'],
-                [
+                self._table(
+                    ['Date', 'Source', 'Type', 'Amount', 'Notes'],
                     [
-                        entry.get_platform_display(), entry.date, entry.followers or '-', entry.post_reach or '-',
-                        entry.likes or '-', entry.shares or '-', entry.comments or '-', entry.notes or '-'
-                    ]
-                    for entry in social['social_entries']
-                ],
-            ),
-        ])
+                        [entry.date, entry.source, entry.get_fund_type_display(), '${}'.format(entry.amount), entry.notes or '-']
+                        for entry in fundraising['funding_entries']
+                    ],
+                ),
+            ])
+        elif report_type == 'workshops':
+            workshops = ReportsAnalyticsService.get_workshops_data()
+            story.extend([
+                Paragraph(
+                    'Workshops: {} | Attendees: {} | Average attendees: {}'.format(
+                        workshops['workshop_count'], workshops['total_attendees'], workshops['avg_attendees']
+                    ),
+                    styles['Normal'],
+                ),
+                self._table(
+                    ['Workshop', 'Date', 'Location', 'Attendees', 'Notes'],
+                    [
+                        [entry.workshop_name, entry.date, entry.location or '-', entry.attendee_count, entry.notes or '-']
+                        for entry in workshops['workshops']
+                    ],
+                ),
+            ])
+        elif report_type == 'students':
+            students = ReportsAnalyticsService.get_student_support_data()
+            story.extend([
+                Paragraph(
+                    'Current year: {} | All-time total: {}'.format(
+                        students['current_year_students'], students['all_time_students']
+                    ),
+                    styles['Normal'],
+                ),
+                self._table(
+                    ['Year', 'Students Supported', 'Notes'],
+                    [
+                        [entry.year, entry.student_count, entry.notes or '-']
+                        for entry in students['student_entries']
+                    ],
+                ),
+            ])
+        else:
+            social = ReportsAnalyticsService.get_social_media_data(platform_filter)
+            story.extend([
+                Paragraph('Platform: {}'.format(platform_filter or 'All'), styles['Normal']),
+                self._table(
+                    ['Platform', 'Date', 'Followers', 'Reach', 'Likes', 'Shares', 'Comments', 'Notes'],
+                    [
+                        [
+                            entry.get_platform_display(), entry.date, entry.followers or '-', entry.post_reach or '-',
+                            entry.likes or '-', entry.shares or '-', entry.comments or '-', entry.notes or '-'
+                        ]
+                        for entry in social['social_entries']
+                    ],
+                ),
+            ])
         document.build(story)
         response = HttpResponse(buffer.getvalue(), content_type='application/pdf')
-        response['Content-Disposition'] = 'attachment; filename="erase-reports.pdf"'
+        response['Content-Disposition'] = 'attachment; filename="erase-{}-report.pdf"'.format(report_type)
         return response
 
     @staticmethod

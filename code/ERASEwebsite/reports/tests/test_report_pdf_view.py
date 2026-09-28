@@ -38,9 +38,48 @@ class ReportsPdfViewTests(TestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response['Content-Type'], 'application/pdf')
-        self.assertIn('attachment; filename="erase-reports.pdf"', response['Content-Disposition'])
+        self.assertIn('attachment; filename="erase-fundraising-report.pdf"', response['Content-Disposition'])
         self.assertTrue(response.content.startswith(b'%PDF'))
         fundraising_data.assert_called_once_with('2026', 'donation')
+
+    def test_social_media_pdf_only_loads_social_metrics(self):
+        with patch.object(ReportsAnalyticsService, 'get_fundraising_data') as fundraising_data, \
+                patch.object(ReportsAnalyticsService, 'get_workshops_data') as workshops_data, \
+                patch.object(ReportsAnalyticsService, 'get_student_support_data') as students_data, \
+                patch.object(
+                    ReportsAnalyticsService,
+                    'get_social_media_data',
+                    wraps=ReportsAnalyticsService.get_social_media_data,
+                ) as social_data:
+            response = self.client.get(reverse('pages:reports_pdf'), {
+                'report': 'social',
+                'platform': 'instagram',
+            })
+
+        self.assertEqual(response.status_code, 200)
+        self.assertIn('attachment; filename="erase-social-report.pdf"', response['Content-Disposition'])
+        self.assertTrue(response.content.startswith(b'%PDF'))
+        fundraising_data.assert_not_called()
+        workshops_data.assert_not_called()
+        students_data.assert_not_called()
+        social_data.assert_called_once_with('instagram')
+
+    def test_workshop_and_student_reports_can_be_exported(self):
+        for report_type in ('workshops', 'students'):
+            with self.subTest(report_type=report_type):
+                response = self.client.get(reverse('pages:reports_pdf'), {'report': report_type})
+
+                self.assertEqual(response.status_code, 200)
+                self.assertTrue(response.content.startswith(b'%PDF'))
+                self.assertIn(
+                    'attachment; filename="erase-{}-report.pdf"'.format(report_type),
+                    response['Content-Disposition'],
+                )
+
+    def test_unknown_report_type_is_rejected(self):
+        response = self.client.get(reverse('pages:reports_pdf'), {'report': 'everything'})
+
+        self.assertEqual(response.status_code, 400)
 
     def test_regular_user_cannot_download_pdf(self):
         self.client.force_login(User.objects.create_user(username='regular'))

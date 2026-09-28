@@ -1,21 +1,40 @@
 import os
-from datetime import date
+from datetime import date, timedelta
 
 from django.core.management.base import BaseCommand, CommandError
+from django.utils import timezone
 
 from reports.integrations.instagram import InstagramGraphClient, aggregate_media_metrics
 from reports.models import SocialMediaMetric
 
 
 class Command(BaseCommand):
-    help = "Sync daily Instagram post metrics from the Instagram Graph API."
+    help = "Sync Instagram post metrics from the Instagram Graph API."
 
     def add_arguments(self, parser):
         parser.add_argument("--since", type=date.fromisoformat, help="Only include posts on or after YYYY-MM-DD.")
         parser.add_argument("--until", type=date.fromisoformat, help="Only include posts on or before YYYY-MM-DD.")
+        parser.add_argument(
+            "--weekly",
+            action="store_true",
+            help="Sync the previous complete seven-day period (intended for a weekly scheduler).",
+        )
         parser.add_argument("--dry-run", action="store_true", help="Fetch and display metrics without saving them.")
 
     def handle(self, *args, **options):
+        if options["weekly"] and (options["since"] or options["until"]):
+            raise CommandError("Use --weekly by itself, without --since or --until.")
+
+        if options["weekly"]:
+            until = timezone.localdate() - timedelta(days=1)
+            since = until - timedelta(days=6)
+        else:
+            since = options["since"]
+            until = options["until"]
+
+        if since and until and since > until:
+            raise CommandError("--since must be on or before --until.")
+
         access_token = os.getenv("INSTAGRAM_ACCESS_TOKEN")
         account_id = os.getenv("INSTAGRAM_ACCOUNT_ID")
         if not access_token or not account_id:
@@ -27,7 +46,7 @@ class Command(BaseCommand):
             api_version=os.getenv("META_GRAPH_API_VERSION", "v22.0"),
         )
         metrics = aggregate_media_metrics(
-            client.get_media(since=options["since"], until=options["until"]),
+            client.get_media(since=since, until=until),
             followers=client.get_account_followers(),
         )
 
