@@ -11,6 +11,7 @@
 {% block content %}
     <section class="page-header">
         <h1>{% trans "Reports" %}</h1>
+        <a class="btn btn-sm" href="{% url 'pages:reports_pdf' %}?year={{ year_filter }}&amp;fund_type={{ type_filter }}&amp;platform={{ platform_filter }}">{% trans "Export PDF" %}</a>
     </section>
 
     <main class="container content">
@@ -375,9 +376,19 @@
                             {{ social_form.post_reach.errors }}
                         </div>
                         <div class="form-group" style="flex:0 1 140px;">
-                            <label>{% trans "Engagement" %}</label>
-                            {{ social_form.engagement }}
-                            {{ social_form.engagement.errors }}
+                            <label>{% trans "Likes" %}</label>
+                            {{ social_form.likes }}
+                            {{ social_form.likes.errors }}
+                        </div>
+                        <div class="form-group" style="flex:0 1 140px;">
+                            <label>{% trans "Shares" %}</label>
+                            {{ social_form.shares }}
+                            {{ social_form.shares.errors }}
+                        </div>
+                        <div class="form-group" style="flex:0 1 140px;">
+                            <label>{% trans "Comments" %}</label>
+                            {{ social_form.comments }}
+                            {{ social_form.comments.errors }}
                         </div>
                     </div>
                     <div class="form-row">
@@ -416,7 +427,9 @@
                             <th>{% trans "Date" %}</th>
                             <th>{% trans "Followers" %}</th>
                             <th>{% trans "Post Reach" %}</th>
-                            <th>{% trans "Engagement" %}</th>
+                            <th>{% trans "Likes" %}</th>
+                            <th>{% trans "Shares" %}</th>
+                            <th>{% trans "Comments" %}</th>
                             <th>{% trans "Notes" %}</th>
                             {% if request.user.is_staff or request.user.is_superuser %}<th></th>{% endif %}
                         </tr>
@@ -428,7 +441,9 @@
                             <td>{{ entry.date }}</td>
                             <td>{{ entry.followers|default:"—" }}</td>
                             <td>{{ entry.post_reach|default:"—" }}</td>
-                            <td>{{ entry.engagement|default:"—" }}</td>
+                            <td>{{ entry.likes|default:"—" }}</td>
+                            <td>{{ entry.shares|default:"—" }}</td>
+                            <td>{{ entry.comments|default:"—" }}</td>
                             <td>{{ entry.notes|default:"—" }}</td>
                             {% if request.user.is_staff or request.user.is_superuser %}
                             <td>

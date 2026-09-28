@@ -53,21 +53,18 @@ class StudentSupport(models.Model):
 class SocialMediaMetric(models.Model):
     PLATFORM_CHOICES = [
         ('instagram', 'Instagram'),
-        ('facebook',  'Facebook'),
-        ('twitter',   'Twitter/X'),
-        ('linkedin',  'LinkedIn'),
-        ('other',     'Other'),
     ]
 
     platform   = models.CharField(max_length=20, choices=PLATFORM_CHOICES)
     date       = models.DateField()
     followers  = models.PositiveIntegerField(null=True, blank=True)
     post_reach = models.PositiveIntegerField(null=True, blank=True)
-    engagement = models.PositiveIntegerField(
-        null=True, blank=True,
-        help_text='Total likes, shares, and comments'
-    )
+    likes      = models.PositiveIntegerField(null=True, blank=True)
+    shares     = models.PositiveIntegerField(null=True, blank=True)
+    comments   = models.PositiveIntegerField(null=True, blank=True)
     notes      = models.TextField(blank=True)
+    collected_at = models.DateTimeField(auto_now_add=True)  
+
 
     class Meta:
         db_table = 'pages_socialmediametric'
@@ -75,4 +72,21 @@ class SocialMediaMetric(models.Model):
 
     def __str__(self):
         return f"{self.get_platform_display()} – {self.date}"
+
+
+class SocialMediaConnections(models.Model):
+    #this will store connected platforms.
+    PLATFORM_CHOICES = [
+        ('instagram', 'Instagram'),
+    ]
+
+    platform   = models.CharField(max_length=20, choices=PLATFORM_CHOICES)
+    connected_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = 'pages_socialmediaconnections'
+        ordering = ['-connected_at']
+
+    def __str__(self):
+        return f"{self.get_platform_display()} – Connected at {self.connected_at}"
 

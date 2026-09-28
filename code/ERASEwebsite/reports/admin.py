@@ -24,6 +24,6 @@ class StudentSupportAdmin(admin.ModelAdmin):
 
 @admin.register(SocialMediaMetric)
 class SocialMediaMetricAdmin(admin.ModelAdmin):
-    list_display = ('platform', 'date', 'followers', 'post_reach', 'engagement')
+    list_display = ('platform', 'date', 'followers', 'post_reach', 'likes', 'shares', 'comments')
     list_filter = ('platform', 'date')
 

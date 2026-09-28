@@ -8,6 +8,7 @@ from students.views import StudentDatabaseView
 from workshops.views import ShipmentMapView
 from reports.views import (
     ReportsDashboardView,
+    ReportsPdfView,
     DeleteFundingView,
     DeleteWorkshopAttendanceView,
     DeleteStudentSupportView,
@@ -51,6 +52,7 @@ urlpatterns = [
 
     # Reports & Analytics
     path('reports/', ReportsDashboardView.as_view(), name='reports'),
+    path('reports/export/pdf/', ReportsPdfView.as_view(), name='reports_pdf'),
     path('reports/delete-funding/<int:pk>/', DeleteFundingView.as_view(), name='delete_funding'),
     path('reports/delete-workshop/<int:pk>/', DeleteWorkshopAttendanceView.as_view(), name='delete_workshop'),
     path('reports/delete-student/<int:pk>/', DeleteStudentSupportView.as_view(), name='delete_student'),
