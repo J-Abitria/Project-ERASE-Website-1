@@ -1,0 +1,19 @@
+{
+  "version": 2,
+  "builds": [
+    {
+      "src": "code/ERASEwebsite/mysite/wsgi.py",
+      "use": "@vercel/python"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/static/(.*)",
+      "dest": "code/ERASEwebsite/static/$1"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "code/ERASEwebsite/mysite/wsgi.py"
+    }
+  ]
+}
