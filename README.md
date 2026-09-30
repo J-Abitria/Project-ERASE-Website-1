@@ -39,6 +39,12 @@ deploying the website. The app-specific migrations create the student,
 workshop, report, and event/RSVP tables in this shared database. Existing data
 in a local SQLite file is not copied automatically.
 
+The production workflow also ensures one Django superuser exists. Add these as
+GitHub Actions repository secrets: `DJANGO_SUPERUSER_USERNAME`,
+`DJANGO_SUPERUSER_EMAIL`, and `DJANGO_SUPERUSER_PASSWORD`. They are needed by
+the workflow only; they do not need to be set in Vercel. The password is set
+when the account is first created and is not reset on later deployments.
+
 ## Functionality
 
 Currently this website is a skeleton site, meant to showcase the branding and design possibilities. There are text buttons at the top of the site, that allow you to navigate to different pages.
