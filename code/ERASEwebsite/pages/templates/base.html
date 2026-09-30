@@ -7,6 +7,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Project ERASE{% endblock %}</title>
     <link rel="stylesheet" href="{% static 'pages/css/base.css' %}">
+    <link rel="stylesheet" href="{% static 'pages/css/site_guide.css' %}">
     {% block extra_styles %}{% endblock %}
 </head>
 <body>
@@ -100,6 +101,9 @@
     </header>
 
     {% block content %}{% endblock %}
+
+    {% include 'site_guide.html' %}
+    <script src="{% static 'pages/javascript/site_guide.js' %}?v=1" defer></script>
 
 </body>
 </html>
