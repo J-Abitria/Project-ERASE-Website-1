@@ -37,7 +37,7 @@ class StudentSupportForm(forms.ModelForm):
 class SocialMediaMetricForm(forms.ModelForm):
     class Meta:
         model  = SocialMediaMetric
-        fields = ['platform', 'date', 'followers', 'post_reach', 'engagement', 'notes']
+        fields = ['platform', 'date', 'followers', 'post_reach', 'likes', 'shares', 'comments', 'notes']
         widgets = {
             'date':  forms.DateInput(attrs=_date_input),
             'notes': forms.Textarea(attrs=_text_input),

@@ -136,6 +136,10 @@ footer {
     margin-top: 3rem;
 }
 
+footer a {
+    color: white;
+}
+
 .nav-admin-link {
     display: flex;
     align-items: center;

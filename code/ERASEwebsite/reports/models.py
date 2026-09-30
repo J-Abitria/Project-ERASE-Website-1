@@ -1,15 +1,16 @@
 from django.db import models
+from django.utils.translation import gettext_lazy as _
 
 
 class FundingEntry(models.Model):
     FUND_TYPE_CHOICES = [
-        ('donation', 'Donation'),
-        ('grant',    'Grant'),
-        ('other',    'Other'),
+        ('donation', _('Donation')),
+        ('grant',    _('Grant')),
+        ('other',    _('Other')),
     ]
 
     date      = models.DateField()
-    source    = models.CharField(max_length=255, help_text='Donor or grant name')
+    source    = models.CharField(max_length=255, help_text=_('Donor or grant name'))
     fund_type = models.CharField(max_length=20, choices=FUND_TYPE_CHOICES, default='donation')
     amount    = models.DecimalField(max_digits=10, decimal_places=2)
     notes     = models.TextField(blank=True)
@@ -52,22 +53,19 @@ class StudentSupport(models.Model):
 
 class SocialMediaMetric(models.Model):
     PLATFORM_CHOICES = [
-        ('instagram', 'Instagram'),
-        ('facebook',  'Facebook'),
-        ('twitter',   'Twitter/X'),
-        ('linkedin',  'LinkedIn'),
-        ('other',     'Other'),
+        ('instagram', _('Instagram')),
     ]
 
     platform   = models.CharField(max_length=20, choices=PLATFORM_CHOICES)
     date       = models.DateField()
     followers  = models.PositiveIntegerField(null=True, blank=True)
     post_reach = models.PositiveIntegerField(null=True, blank=True)
-    engagement = models.PositiveIntegerField(
-        null=True, blank=True,
-        help_text='Total likes, shares, and comments'
-    )
+    likes      = models.PositiveIntegerField(null=True, blank=True)
+    shares     = models.PositiveIntegerField(null=True, blank=True)
+    comments   = models.PositiveIntegerField(null=True, blank=True)
     notes      = models.TextField(blank=True)
+    collected_at = models.DateTimeField(auto_now_add=True)  
+
 
     class Meta:
         db_table = 'pages_socialmediametric'
@@ -75,4 +73,21 @@ class SocialMediaMetric(models.Model):
 
     def __str__(self):
         return f"{self.get_platform_display()} – {self.date}"
+
+
+class SocialMediaConnections(models.Model):
+    #this will store connected platforms.
+    PLATFORM_CHOICES = [
+        ('instagram', _('Instagram')),
+    ]
+
+    platform   = models.CharField(max_length=20, choices=PLATFORM_CHOICES)
+    connected_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = 'pages_socialmediaconnections'
+        ordering = ['-connected_at']
+
+    def __str__(self):
+        return f"{self.get_platform_display()} – Connected at {self.connected_at}"
 

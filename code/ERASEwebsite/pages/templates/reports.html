@@ -24,15 +24,15 @@
         {% endif %}
 
         <!-- Tab Navigation -->
-        <div class="report-tabs">
-            <button class="tab-btn" data-tab="fundraising">{% trans "Fundraising" %}</button>
-            <button class="tab-btn" data-tab="workshops">{% trans "Workshop Attendance" %}</button>
-            <button class="tab-btn" data-tab="students">{% trans "Students Supported" %}</button>
-            <button class="tab-btn" data-tab="social">{% trans "Social Media" %}</button>
+        <div class="report-tabs" data-initial-tab="{{ active_tab }}">
+            <button class="tab-btn{% if active_tab == 'fundraising' %} active{% endif %}" data-tab="fundraising">{% trans "Fundraising" %}</button>
+            <button class="tab-btn{% if active_tab == 'workshops' %} active{% endif %}" data-tab="workshops">{% trans "Workshop Attendance" %}</button>
+            <button class="tab-btn{% if active_tab == 'students' %} active{% endif %}" data-tab="students">{% trans "Students Supported" %}</button>
+            <button class="tab-btn{% if active_tab == 'social' %} active{% endif %}" data-tab="social">{% trans "Social Media" %}</button>
         </div>
 
         <!-- ===================== FUNDRAISING TAB ===================== -->
-        <div id="tab-fundraising" class="tab-content">
+        <div id="tab-fundraising" class="tab-content{% if active_tab == 'fundraising' %} active{% endif %}">
 
             {% if request.user.is_staff or request.user.is_superuser %}
             <details class="add-entry-panel" {% if active_tab == 'fundraising' and funding_form.errors %}open{% endif %}>
@@ -110,6 +110,7 @@
                         <option value="other"    {% if type_filter == 'other'    %}selected{% endif %}>{% trans "Other" %}</option>
                     </select>
                     <button type="submit" class="btn btn-sm">{% trans "Filter" %}</button>
+                    <a class="btn btn-sm" href="{% url 'pages:reports_pdf' %}?report=fundraising&amp;year={{ year_filter }}&amp;fund_type={{ type_filter }}">{% trans "Export PDF" %}</a>
                 </form>
 
                 {% if funding_entries %}
@@ -134,7 +135,8 @@
                             <td>{{ entry.notes|default:"—" }}</td>
                             {% if request.user.is_staff or request.user.is_superuser %}
                             <td>
-                                <form method="post" action="{% url 'pages:delete_funding' entry.pk %}" onsubmit="return confirm('Delete this funding entry?')">
+                                {% trans "Delete this funding entry?" as delete_funding_confirm %}
+                                <form method="post" action="{% url 'pages:delete_funding' entry.pk %}" onsubmit="return confirm('{{ delete_funding_confirm|escapejs }}')">
                                     {% csrf_token %}
                                     <button type="submit" class="btn-danger">{% trans "Delete" %}</button>
                                 </form>
@@ -158,7 +160,7 @@
         </div>
 
         <!-- ===================== WORKSHOPS TAB ===================== -->
-        <div id="tab-workshops" class="tab-content">
+        <div id="tab-workshops" class="tab-content{% if active_tab == 'workshops' %} active{% endif %}">
 
             {% if request.user.is_staff or request.user.is_superuser %}
             <details class="add-entry-panel" {% if active_tab == 'workshops' and workshop_form.errors %}open{% endif %}>
@@ -219,6 +221,9 @@
 
             <div class="report-section">
                 <h2>{% trans "Workshop Records" %}</h2>
+                <div class="report-filter-bar report-actions">
+                    <a class="btn btn-sm" href="{% url 'pages:reports_pdf' %}?report=workshops">{% trans "Export PDF" %}</a>
+                </div>
                 {% if workshops %}
                 <table class="report-table">
                     <thead>
@@ -241,7 +246,8 @@
                             <td>{{ w.notes|default:"—" }}</td>
                             {% if request.user.is_staff or request.user.is_superuser %}
                             <td>
-                                <form method="post" action="{% url 'pages:delete_workshop' w.pk %}" onsubmit="return confirm('Delete this workshop record?')">
+                                {% trans "Delete this workshop record?" as delete_workshop_confirm %}
+                                <form method="post" action="{% url 'pages:delete_workshop' w.pk %}" onsubmit="return confirm('{{ delete_workshop_confirm|escapejs }}')">
                                     {% csrf_token %}
                                     <button type="submit" class="btn-danger">{% trans "Delete" %}</button>
                                 </form>
@@ -258,7 +264,7 @@
         </div>
 
         <!-- ===================== STUDENTS SUPPORTED TAB ===================== -->
-        <div id="tab-students" class="tab-content">
+        <div id="tab-students" class="tab-content{% if active_tab == 'students' %} active{% endif %}">
 
             {% if request.user.is_staff or request.user.is_superuser %}
             <details class="add-entry-panel" {% if active_tab == 'students' and student_form.errors %}open{% endif %}>
@@ -303,6 +309,9 @@
 
             <div class="report-section">
                 <h2>{% trans "Student Support Records" %}</h2>
+                <div class="report-filter-bar report-actions">
+                    <a class="btn btn-sm" href="{% url 'pages:reports_pdf' %}?report=students">{% trans "Export PDF" %}</a>
+                </div>
                 {% if student_entries %}
                 <table class="report-table">
                     <thead>
@@ -321,7 +330,8 @@
                             <td>{{ entry.notes|default:"—" }}</td>
                             {% if request.user.is_staff or request.user.is_superuser %}
                             <td>
-                                <form method="post" action="{% url 'pages:delete_student' entry.pk %}" onsubmit="return confirm('Delete this entry?')">
+                                {% trans "Delete this entry?" as delete_student_confirm %}
+                                <form method="post" action="{% url 'pages:delete_student' entry.pk %}" onsubmit="return confirm('{{ delete_student_confirm|escapejs }}')">
                                     {% csrf_token %}
                                     <button type="submit" class="btn-danger">{% trans "Delete" %}</button>
                                 </form>
@@ -345,7 +355,7 @@
         </div>
 
         <!-- ===================== SOCIAL MEDIA TAB ===================== -->
-        <div id="tab-social" class="tab-content">
+        <div id="tab-social" class="tab-content{% if active_tab == 'social' %} active{% endif %}">
 
             {% if request.user.is_staff or request.user.is_superuser %}
             <details class="add-entry-panel" {% if active_tab == 'social' and social_form.errors %}open{% endif %}>
@@ -375,9 +385,19 @@
                             {{ social_form.post_reach.errors }}
                         </div>
                         <div class="form-group" style="flex:0 1 140px;">
-                            <label>{% trans "Engagement" %}</label>
-                            {{ social_form.engagement }}
-                            {{ social_form.engagement.errors }}
+                            <label>{% trans "Likes" %}</label>
+                            {{ social_form.likes }}
+                            {{ social_form.likes.errors }}
+                        </div>
+                        <div class="form-group" style="flex:0 1 140px;">
+                            <label>{% trans "Shares" %}</label>
+                            {{ social_form.shares }}
+                            {{ social_form.shares.errors }}
+                        </div>
+                        <div class="form-group" style="flex:0 1 140px;">
+                            <label>{% trans "Comments" %}</label>
+                            {{ social_form.comments }}
+                            {{ social_form.comments.errors }}
                         </div>
                     </div>
                     <div class="form-row">
@@ -406,6 +426,7 @@
                         {% endfor %}
                     </select>
                     <button type="submit" class="btn btn-sm">{% trans "Filter" %}</button>
+                    <a class="btn btn-sm" href="{% url 'pages:reports_pdf' %}?report=social&amp;platform={{ platform_filter }}">{% trans "Export PDF" %}</a>
                 </form>
 
                 {% if social_entries %}
@@ -416,7 +437,9 @@
                             <th>{% trans "Date" %}</th>
                             <th>{% trans "Followers" %}</th>
                             <th>{% trans "Post Reach" %}</th>
-                            <th>{% trans "Engagement" %}</th>
+                            <th>{% trans "Likes" %}</th>
+                            <th>{% trans "Shares" %}</th>
+                            <th>{% trans "Comments" %}</th>
                             <th>{% trans "Notes" %}</th>
                             {% if request.user.is_staff or request.user.is_superuser %}<th></th>{% endif %}
                         </tr>
@@ -428,11 +451,14 @@
                             <td>{{ entry.date }}</td>
                             <td>{{ entry.followers|default:"—" }}</td>
                             <td>{{ entry.post_reach|default:"—" }}</td>
-                            <td>{{ entry.engagement|default:"—" }}</td>
+                            <td>{{ entry.likes|default:"—" }}</td>
+                            <td>{{ entry.shares|default:"—" }}</td>
+                            <td>{{ entry.comments|default:"—" }}</td>
                             <td>{{ entry.notes|default:"—" }}</td>
                             {% if request.user.is_staff or request.user.is_superuser %}
                             <td>
-                                <form method="post" action="{% url 'pages:delete_social' entry.pk %}" onsubmit="return confirm('Delete this entry?')">
+                                {% trans "Delete this entry?" as delete_social_confirm %}
+                                <form method="post" action="{% url 'pages:delete_social' entry.pk %}" onsubmit="return confirm('{{ delete_social_confirm|escapejs }}')">
                                     {% csrf_token %}
                                     <button type="submit" class="btn-danger">{% trans "Delete" %}</button>
                                 </form>

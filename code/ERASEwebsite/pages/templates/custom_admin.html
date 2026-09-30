@@ -36,7 +36,7 @@
             <h2>{% trans "Quick Actions" %}</h2>
             <ul class="admin-action-list">
                 {% if user.is_superuser %}
-                <li><a href="{% url 'pages:manage_users' %}">{% trans "Manage Users" %} <span class="badge-master">Master</span></a></li>
+                <li><a href="{% url 'pages:manage_users' %}">{% trans "Manage Users" %} <span class="badge-master">{% trans "Master" %}</span></a></li>
                 {% endif %}
                 <li><a href="{% url 'pages:reports' %}">{% trans "Reports" %}</a></li>
                 <li><a href="{% url 'pages:studentdb' %}">{% trans "Student Database" %}</a></li>

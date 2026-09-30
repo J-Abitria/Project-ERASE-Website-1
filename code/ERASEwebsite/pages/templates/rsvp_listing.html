@@ -21,7 +21,7 @@
                 <h3>{{ event.title }}</h3>
                 <div class="event-meta">{{ event.date }} &mdash; {{ event.time }}</div>
             </div>
-            <div class="rsvp-badge">{{ event.rsvp_count }} RSVPs</div>
+            <div class="rsvp-badge">{% blocktrans count counter=event.rsvp_count %}{{ counter }} RSVP{% plural %}{{ counter }} RSVPs{% endblocktrans %}</div>
         </a>
         {% endfor %}
     {% else %}
