@@ -73,7 +73,6 @@ class StudentDatabaseView(View):
                 )
 
     def _delete_student(self, request):
-        student_name = request.POST.get('student_name')
-        if student_name:
-            Student.objects.filter(name=student_name).delete()
-
+        student_id = request.POST.get('student_id')
+        if student_id:
+            Student.objects.filter(pk=student_id).delete()

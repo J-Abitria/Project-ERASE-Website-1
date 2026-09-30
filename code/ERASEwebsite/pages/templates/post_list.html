@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+{% load static i18n %}
+
+{% block title %}{% trans "Blog" %} - Project ERASE{% endblock %}
+
+{% block extra_styles %}
+<link rel="stylesheet" href="{% static 'pages/css/blog.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="blog-page">
+    <div class="page-header">
+        <h1>{% trans "Blog" %}</h1>
+        <p>{% trans "News, updates, stories, and announcements from Project ERASE." %}</p>
+    </div>
+    <div class="blog-container">
+        {% if posts %}
+            <div class="blog-post-grid">
+                {% for post in posts %}
+                    <article class="blog-card">
+                        {% if post.featured_image %}
+                            <div class="blog-card-image">
+                                <img
+                                    src="{{ post.featured_image.url }}"
+                                    alt="{{ post.title }}"
+                                >
+                            </div>
+                        {% endif %}
+                        <div class="blog-card-content">
+                            <h2 class="blog-card-title">
+                                {{ post.title }}
+                            </h2>
+                            <div class="blog-card-meta">
+                                {% trans "By" %}
+                                {{ post.author.get_full_name|default:post.author.username }}
+
+                                {% if post.created_at %}
+                                    · {{ post.created_at|date:"F j, Y" }}
+                                {% endif %}
+                            </div>
+                            <div class="blog-card-actions">
+                                <a
+                                    href="{% url 'blog:post_detail' post.slug %}"
+                                    class="btn btn-primary"
+                                >
+                                    {% trans "Read More" %}
+                                </a>
+                            </div>
+                        </div>
+                    </article>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="blog-form-card">
+                <div class="page-header">
+                    <h2>{% trans "No Posts Yet" %}</h2>
+                    <p>
+                        {% trans "Check again later" %}
+                    </p>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

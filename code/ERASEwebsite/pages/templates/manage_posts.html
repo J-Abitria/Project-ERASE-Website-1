@@ -1,0 +1,108 @@
+{% extends "base.html" %}
+{% load static i18n %}
+
+{% block title %}{% trans "Manage Blog" %} - Project ERASE{% endblock %}
+
+{% block extra_styles %}
+<link rel="stylesheet" href="{% static 'pages/css/blog.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="blog-page">
+
+    <header class="page-header">
+        <h1>{% trans "Manage Blog" %}</h1>
+        <p>{% trans "Create, edit, publish, and delete blog posts." %}</p>
+    </header>
+
+    <main class="blog-container">
+
+        <div class="blog-admin-header">
+            <div>
+                <h2 class="blog-admin-title">{% trans "Your Posts" %}</h2>
+                <p class="blog-admin-description">
+                    {% trans "Manage your published and draft posts." %}
+                </p>
+            </div>
+
+            <a href="{% url 'blog:post_create' %}" class="btn btn-primary">
+                + {% trans "Create Post" %}
+            </a>
+        </div>
+
+        {% if posts %}
+        <div class="blog-card blog-admin-card">
+            <div class="blog-admin-table-wrapper">
+                <table class="blog-admin-table">
+                    <thead>
+                        <tr>
+                            <th>{% trans "Title" %}</th>
+                            <th>{% trans "Author" %}</th>
+                            <th>{% trans "Status" %}</th>
+                            <th>{% trans "Actions" %}</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        {% for post in posts %}
+                        <tr>
+                            <td class="blog-admin-post-title">
+                                <strong>{{ post.title }}</strong>
+                            </td>
+
+                            <td>
+                                {{ post.author.get_full_name|default:post.author.username }}
+                            </td>
+
+                            <td>
+                                <span class="blog-status {% if post.published %}blog-status-published{% else %}blog-status-draft{% endif %}">
+                                    {% if post.published %}
+                                        {% trans "Published" %}
+                                    {% else %}
+                                        {% trans "Draft" %}
+                                    {% endif %}
+                                </span>
+                            </td>
+
+                            <td>
+                                <div class="blog-card-actions blog-admin-actions">
+                                    <a href="{% url 'blog:post_delete' post.slug %}" class="btn btn-danger">
+                                        {% trans "Delete" %}
+                                    </a>
+
+                                    <a href="{% url 'blog:post_edit' post.slug %}" class="btn btn-primary">
+                                        {% trans "Edit" %}
+                                    </a>
+
+                                    <form method="POST" action="{% url 'blog:publish_post' post.id %}">
+                                        {% csrf_token %}
+                                        <button
+                                            type="submit"
+                                            class="btn {% if post.published %}btn-secondary{% else %}btn-success{% endif %}"
+                                        >
+                                            {% if post.published %}
+                                                {% trans "Unpublish" %}
+                                            {% else %}
+                                                {% trans "Publish" %}
+                                            {% endif %}
+                                        </button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        {% else %}
+        <div class="blog-card blog-empty-state">
+            <h2>{% trans "No Posts" %}</h2>
+            <p>{% trans "You have not created any blog posts yet." %}</p>
+        </div>
+        {% endif %}
+
+    </main>
+</div>
+{% endblock %}

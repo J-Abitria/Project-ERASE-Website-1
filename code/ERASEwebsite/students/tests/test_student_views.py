@@ -142,9 +142,11 @@ class StudentViewsTests(TestCase):
     def test_studentdb_post_delete_student(self):
         """Staff user can delete a student by name."""
         self.client.login(username="staff", password="Password123!")
+        
+        student = Student.objects.get(name="Charlie Brown")
         post_data = {
             'action': 'delete',
-            'student_name': 'Charlie Brown',
+            'student_id': student.id,
         }
         response = self.client.post(self.url, post_data)
         self.assertRedirects(response, self.url)

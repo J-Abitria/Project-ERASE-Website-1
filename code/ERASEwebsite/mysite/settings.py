@@ -49,6 +49,8 @@ INSTALLED_APPS = [
     'workshops',
     'reports',
     'event_calendar',
+    'blog',
+    'django_ckeditor_5',
 ]
 
 MIDDLEWARE = [
@@ -143,6 +145,27 @@ LOCALE_PATHS = [
 ]
 
 USE_TZ = True
+
+
+# Text Editor Config
+CKEDITOR_5_CONFIGS = {
+    "extends": {
+        "toolbar": [
+            "heading",
+            "|",
+            "bold",
+            "italic",
+            "link",
+            "bulletedList",
+            "numberedList",
+            "|",
+            "blockQuote",
+            "insertTable",
+            "undo",
+            "redo",
+        ],
+    },
+}
 
 
 # Static files (CSS, JavaScript, Images)
