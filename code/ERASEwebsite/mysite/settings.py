@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/6.0/ref/settings/
 
 import os
 from pathlib import Path
+from urllib.parse import urlsplit
 
 import dj_database_url
 
@@ -89,8 +90,7 @@ WSGI_APPLICATION = 'mysite.wsgi.application'
 DATABASE_URL = os.environ.get('DATABASE_URL')
 
 if DATABASE_URL:
-    if DATABASE_URL.startswith("postgres://"):
-            DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql://", 1)
+    print("DATABASE_URL scheme:", repr(urlsplit(DATABASE_URL).scheme))
     DATABASES = {
         'default': dj_database_url.parse(
             DATABASE_URL,
