@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% load static i18n %}
+
+{% block title %}
+    {% trans "Delete Post" %} - Project ERASE
+{% endblock %}
+
+{% block extra_styles %}
+    <link rel="stylesheet" href="{% static 'pages/css/blog.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="blog-page">
+    <div class="blog-container">
+        <div class="blog-form-card">
+
+            <div class="page-header">
+                <h2>{% trans "Delete Blog Post?" %}</h2>
+                <p>
+                    {% trans "This action will permanently remove the following post." %}
+                </p>
+            </div>
+
+            <h3 class="blog-admin-title" style="margin-top: 28px;">
+                "{{ post.title }}"
+            </h3>
+
+            <div class="blog-form-actions">
+                <a href="{% url 'blog:manage_posts' %}" class="btn btn-secondary">
+                    {% trans "Cancel" %}
+                </a>
+
+                <form method="POST" action="{% url 'blog:post_delete' post.slug %}">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-danger">
+                        {% trans "Delete Permanently" %}
+                    </button>
+                </form>
+            </div>
+
+        </div>
+    </div>
+</div>
+{% endblock %}

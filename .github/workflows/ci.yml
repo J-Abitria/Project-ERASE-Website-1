@@ -30,7 +30,7 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+          pip install -r ../../requirements.txt
       
       - name: Run Linter (Flake8)
         run: |
@@ -52,3 +52,104 @@ jobs:
       - name: Run Tests
         run: python manage.py test
 
+  deploy:
+    name: Deploy to Vercel
+    needs: test
+    runs-on: ubuntu-latest
+    # Runs on direct pushes to main, merged PRs to main (which trigger a push event to main), or manual workflow dispatch
+    if: (github.event_name == 'push' && github.ref == 'refs/heads/main') || (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main')
+    env:
+      VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+      VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+    steps:
+      - name: Checkout repository code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+
+      - name: Install Vercel CLI
+        run: npm install --global vercel@latest
+
+      - name: Pull Vercel Environment Information
+        run: vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
+
+      - name: Verify deployment secrets
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          DJANGO_SUPERUSER_USERNAME: ${{ secrets.DJANGO_SUPERUSER_USERNAME }}
+          DJANGO_SUPERUSER_EMAIL: ${{ secrets.DJANGO_SUPERUSER_EMAIL }}
+          DJANGO_SUPERUSER_PASSWORD: ${{ secrets.DJANGO_SUPERUSER_PASSWORD }}
+        run: |
+          python - <<'PY'
+          import os
+          from urllib.parse import urlsplit
+
+          required = (
+              'DATABASE_URL',
+              'DJANGO_SUPERUSER_USERNAME',
+              'DJANGO_SUPERUSER_EMAIL',
+              'DJANGO_SUPERUSER_PASSWORD',
+          )
+          missing = [name for name in required if not os.environ.get(name)]
+          if missing:
+              raise SystemExit(f'Missing GitHub Actions secrets: {", ".join(missing)}')
+
+          scheme = urlsplit(os.environ['DATABASE_URL'].strip()).scheme
+          print(f'DATABASE_URL scheme: {scheme or "<missing>"}')
+          if scheme not in {'postgres', 'postgresql'}:
+              raise SystemExit('DATABASE_URL must be a PostgreSQL URL.')
+          PY
+
+      - name: Build Project Artifacts
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: vercel build --prod --token=${{ secrets.VERCEL_TOKEN }}
+
+      - name: Install Django dependencies for migrations
+        run: python -m pip install -r requirements.txt
+
+      - name: Apply database migrations
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: python code/ERASEwebsite/manage.py migrate --noinput
+
+      - name: Ensure Django superuser exists
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          DJANGO_SUPERUSER_USERNAME: ${{ secrets.DJANGO_SUPERUSER_USERNAME }}
+          DJANGO_SUPERUSER_EMAIL: ${{ secrets.DJANGO_SUPERUSER_EMAIL }}
+          DJANGO_SUPERUSER_PASSWORD: ${{ secrets.DJANGO_SUPERUSER_PASSWORD }}
+        run: |
+          python code/ERASEwebsite/manage.py shell <<'PY'
+          import os
+          from django.contrib.auth import get_user_model
+
+          User = get_user_model()
+          username = os.environ['DJANGO_SUPERUSER_USERNAME']
+          user, created = User.objects.get_or_create(
+              username=username,
+              defaults={
+                  'email': os.environ['DJANGO_SUPERUSER_EMAIL'],
+                  'is_staff': True,
+                  'is_superuser': True,
+              },
+          )
+
+          if created:
+              user.set_password(os.environ['DJANGO_SUPERUSER_PASSWORD'])
+              user.save(update_fields=['password'])
+              print('Django superuser created.')
+          elif not user.is_superuser:
+              raise SystemExit('Configured username exists but is not a superuser.')
+          else:
+              print('Django superuser already exists; left unchanged.')
+          PY
+
+      - name: Deploy Project Artifacts to Vercel
+        run: vercel deploy --prebuilt --prod --token=${{ secrets.VERCEL_TOKEN }}
