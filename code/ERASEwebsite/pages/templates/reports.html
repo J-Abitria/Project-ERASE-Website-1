@@ -135,7 +135,8 @@
                             <td>{{ entry.notes|default:"—" }}</td>
                             {% if request.user.is_staff or request.user.is_superuser %}
                             <td>
-                                <form method="post" action="{% url 'pages:delete_funding' entry.pk %}" onsubmit="return confirm('Delete this funding entry?')">
+                                {% trans "Delete this funding entry?" as delete_funding_confirm %}
+                                <form method="post" action="{% url 'pages:delete_funding' entry.pk %}" onsubmit="return confirm('{{ delete_funding_confirm|escapejs }}')">
                                     {% csrf_token %}
                                     <button type="submit" class="btn-danger">{% trans "Delete" %}</button>
                                 </form>
@@ -245,7 +246,8 @@
                             <td>{{ w.notes|default:"—" }}</td>
                             {% if request.user.is_staff or request.user.is_superuser %}
                             <td>
-                                <form method="post" action="{% url 'pages:delete_workshop' w.pk %}" onsubmit="return confirm('Delete this workshop record?')">
+                                {% trans "Delete this workshop record?" as delete_workshop_confirm %}
+                                <form method="post" action="{% url 'pages:delete_workshop' w.pk %}" onsubmit="return confirm('{{ delete_workshop_confirm|escapejs }}')">
                                     {% csrf_token %}
                                     <button type="submit" class="btn-danger">{% trans "Delete" %}</button>
                                 </form>
@@ -328,7 +330,8 @@
                             <td>{{ entry.notes|default:"—" }}</td>
                             {% if request.user.is_staff or request.user.is_superuser %}
                             <td>
-                                <form method="post" action="{% url 'pages:delete_student' entry.pk %}" onsubmit="return confirm('Delete this entry?')">
+                                {% trans "Delete this entry?" as delete_student_confirm %}
+                                <form method="post" action="{% url 'pages:delete_student' entry.pk %}" onsubmit="return confirm('{{ delete_student_confirm|escapejs }}')">
                                     {% csrf_token %}
                                     <button type="submit" class="btn-danger">{% trans "Delete" %}</button>
                                 </form>
@@ -454,7 +457,8 @@
                             <td>{{ entry.notes|default:"—" }}</td>
                             {% if request.user.is_staff or request.user.is_superuser %}
                             <td>
-                                <form method="post" action="{% url 'pages:delete_social' entry.pk %}" onsubmit="return confirm('Delete this entry?')">
+                                {% trans "Delete this entry?" as delete_social_confirm %}
+                                <form method="post" action="{% url 'pages:delete_social' entry.pk %}" onsubmit="return confirm('{{ delete_social_confirm|escapejs }}')">
                                     {% csrf_token %}
                                     <button type="submit" class="btn-danger">{% trans "Delete" %}</button>
                                 </form>

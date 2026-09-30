@@ -1,4 +1,5 @@
 from django import forms
+from django.utils.translation import gettext_lazy as _
 from .models import Event
 
 class EventForm(forms.ModelForm):
@@ -6,7 +7,11 @@ class EventForm(forms.ModelForm):
         model = Event
         fields = ['title', 'date', 'time', 'description', 'hasRSVP']
         labels = {
-            'hasRSVP': 'Enable RSVP list?'
+            'title': _('Title'),
+            'date': _('Date'),
+            'time': _('Time'),
+            'description': _('Description'),
+            'hasRSVP': _('Enable RSVP list?'),
         }
         widgets = {
             'date': forms.DateInput(attrs={'type': 'date'}),

@@ -8,6 +8,7 @@ from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import Group, User
 from django.contrib import messages
 from django.core.exceptions import PermissionDenied
+from django.utils.translation import gettext as _
 
 from .forms import AccountEmailForm
 
@@ -20,11 +21,6 @@ class HomeView(TemplateView):
 class AboutView(TemplateView):
     """Render the about page."""
     template_name = 'about.html'
-
-
-class ContactView(TemplateView):
-    """Render the contact page."""
-    template_name = 'contact.html'
 
 
 class SignUpView(View):
@@ -95,7 +91,7 @@ class AccountView(LoginRequiredMixin, View):
         form = AccountEmailForm(request.POST, instance=request.user)
         if form.is_valid():
             form.save()
-            messages.success(request, 'Email updated successfully.')
+            messages.success(request, _('Email updated successfully.'))
             return redirect('pages:account')
         return render(request, self.template_name, {
             'email_form': form,
@@ -104,11 +100,11 @@ class AccountView(LoginRequiredMixin, View):
 
     def _get_user_role(self, user):
         if user.is_superuser:
-            return 'Master'
+            return _('Master')
         if user.is_staff:
-            return 'Admin'
+            return _('Admin')
         groups = user.groups.values_list('name', flat=True)
-        return ', '.join(groups) if groups else 'User'
+        return ', '.join(groups) if groups and 'normal users' not in groups else _('User')
 
 
 class DeleteAccountView(LoginRequiredMixin, View):

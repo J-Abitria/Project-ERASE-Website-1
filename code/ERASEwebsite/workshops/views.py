@@ -2,6 +2,7 @@ import json
 from django.shortcuts import render, redirect
 from django.http import JsonResponse
 from django.views import View
+from django.utils.translation import gettext as _
 from .models import Workshop
 
 
@@ -46,14 +47,14 @@ class ShipmentMapView(View):
 
     def _handle_delete(self, request, workshop_id):
         if not (request.user.is_authenticated and request.user.is_staff):
-            return JsonResponse({'success': False, 'error': 'Authentication required'})
+            return JsonResponse({'success': False, 'error': _('Authentication required')})
 
         try:
             workshop = Workshop.objects.get(id=int(workshop_id))
             workshop.delete()
             return JsonResponse({'success': True})
         except (Workshop.DoesNotExist, ValueError) as e:
-            return JsonResponse({'success': False, 'error': 'Workshop not found'})
+            return JsonResponse({'success': False, 'error': _('Workshop not found')})
 
     def _handle_create(self, request):
         title = request.POST.get('title', '').strip()

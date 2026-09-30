@@ -1,15 +1,16 @@
 from django.db import models
+from django.utils.translation import gettext_lazy as _
 
 
 class FundingEntry(models.Model):
     FUND_TYPE_CHOICES = [
-        ('donation', 'Donation'),
-        ('grant',    'Grant'),
-        ('other',    'Other'),
+        ('donation', _('Donation')),
+        ('grant',    _('Grant')),
+        ('other',    _('Other')),
     ]
 
     date      = models.DateField()
-    source    = models.CharField(max_length=255, help_text='Donor or grant name')
+    source    = models.CharField(max_length=255, help_text=_('Donor or grant name'))
     fund_type = models.CharField(max_length=20, choices=FUND_TYPE_CHOICES, default='donation')
     amount    = models.DecimalField(max_digits=10, decimal_places=2)
     notes     = models.TextField(blank=True)
@@ -52,7 +53,7 @@ class StudentSupport(models.Model):
 
 class SocialMediaMetric(models.Model):
     PLATFORM_CHOICES = [
-        ('instagram', 'Instagram'),
+        ('instagram', _('Instagram')),
     ]
 
     platform   = models.CharField(max_length=20, choices=PLATFORM_CHOICES)
@@ -77,7 +78,7 @@ class SocialMediaMetric(models.Model):
 class SocialMediaConnections(models.Model):
     #this will store connected platforms.
     PLATFORM_CHOICES = [
-        ('instagram', 'Instagram'),
+        ('instagram', _('Instagram')),
     ]
 
     platform   = models.CharField(max_length=20, choices=PLATFORM_CHOICES)

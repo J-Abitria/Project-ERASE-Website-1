@@ -1,10 +1,15 @@
 from calendar import HTMLCalendar
 from datetime import datetime, date
 from html import escape
+from django.utils.translation import gettext as _
 
 
 class EventCalendar(HTMLCalendar):
     """Custom HTMLCalendar that displays events on specific dates"""
+
+    def formatweekday(self, day):
+        names = [_('Monday'), _('Tuesday'), _('Wednesday'), _('Thursday'), _('Friday'), _('Saturday'), _('Sunday')]
+        return f'<th class="{self.cssclasses_weekday_head[day]}">{names[day]}</th>'
     
     def __init__(self, events=None):
         """
@@ -147,4 +152,4 @@ def get_calendar_data(year=None, month=None, events=None):
         'current_month': resolved_month,
         'calendar_html': calendar_html,
         **nav_dates,
-    }
+    }

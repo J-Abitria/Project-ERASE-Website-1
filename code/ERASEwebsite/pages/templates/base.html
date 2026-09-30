@@ -1,6 +1,7 @@
 {% load static i18n %}
+{% get_current_language as LANGUAGE_CODE %}
 <!DOCTYPE html>
-<html lang="en">
+<html lang="{{ LANGUAGE_CODE }}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -18,12 +19,7 @@
             </div>
             <ul>
                 <li><a href="{% url 'pages:home' %}">{% trans "Home" %}</a></li>
-                <li class="nav-dropdown">
-                    <a href="{% url 'pages:about' %}">{% trans "About" %}</a>
-                    <ul class="dropdown-menu">
-                        <li><a href="{% url 'pages:contact' %}">{% trans "Contact" %}</a></li>
-                    </ul>
-                </li>
+                <li><a href="{% url 'pages:about' %}">{% trans "About" %}</a></li>
                 <li class="nav-dropdown">
                     <a href="#">{% trans "Resources" %}</a>
                     <ul class="dropdown-menu">
@@ -38,11 +34,11 @@
                     <ul class="dropdown-menu">
                         <li><a href="{% url 'pages:account' %}">{% trans "My Account" %}</a></li>
                         {% if user.is_superuser %}
-                        <li><a href="{% url 'pages:manage_users' %}" class="nav-admin-link">{% trans "Manage Users" %}<span class="admin-badge">Master</span></a></li>
+                        <li><a href="{% url 'pages:manage_users' %}" class="nav-admin-link">{% trans "Manage Users" %}<span class="admin-badge">{% trans "Master" %}</span></a></li>
                         {% endif %}
                         {% if user.is_staff or user.is_superuser %}
-                        <li><a href="{% url 'pages:reports' %}" class="nav-admin-link">{% trans "Reports" %}<span class="admin-badge">Admin</span></a></li>
-                        <li><a href="{% url 'pages:custom_admin' %}" class="nav-admin-link">{% trans "Admin Panel" %}<span class="admin-badge">Admin</span></a></li>
+                        <li><a href="{% url 'pages:reports' %}" class="nav-admin-link">{% trans "Reports" %}<span class="admin-badge">{% trans "Admin" %}</span></a></li>
+                        <li><a href="{% url 'pages:custom_admin' %}" class="nav-admin-link">{% trans "Admin Panel" %}<span class="admin-badge">{% trans "Admin" %}</span></a></li>
                         {% endif %}
                         <li>
                             <form method="post" action="{% url 'pages:logout' %}">
@@ -55,7 +51,6 @@
                 {% else %}
                 <li><a href="{% url 'pages:login' %}">{% trans "Login" %}</a></li>
                 {% endif %}
-                {% get_current_language as LANGUAGE_CODE %}
                 <li class="nav-language-item">
                     <div class="lang-switcher" aria-label="{% trans 'Language selector' %}">
                         <form method="post" action="{% url 'set_language' %}">
