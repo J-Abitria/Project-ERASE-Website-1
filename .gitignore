@@ -27,10 +27,6 @@ db.sqlite3-journal
 staticfiles/
 **/staticfiles/
 
-# Migrations
-**/migrations/
-**/migrations/**
-migrations/
 /static/
 /code/ERASEwebsite/static/
 !**/pages/static/

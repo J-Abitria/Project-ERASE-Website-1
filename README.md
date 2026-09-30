@@ -34,11 +34,10 @@ values when pulling them for a local CLI build, also add the same connection
 string as a GitHub Actions repository secret named `DATABASE_URL`. The deploy
 workflow uses it during the prebuild and logs only its URL scheme.
 
-The repository's `neon.ts` is an empty Neon policy. `neon deploy` applies that
-policy to the linked Neon branch; it does not deploy this website or run Django
-migrations. Before first use of a new database, run `python manage.py migrate`
-from `code/ERASEwebsite` with `DATABASE_URL` set to that database's connection
-string. Existing data in a local SQLite file is not copied automatically.
+The production GitHub Actions job runs Django migrations against Neon before
+deploying the website. The app-specific migrations create the student,
+workshop, report, and event/RSVP tables in this shared database. Existing data
+in a local SQLite file is not copied automatically.
 
 ## Functionality
 
