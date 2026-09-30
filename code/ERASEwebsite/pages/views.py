@@ -108,7 +108,7 @@ class AccountView(LoginRequiredMixin, View):
         if user.is_staff:
             return 'Admin'
         groups = user.groups.values_list('name', flat=True)
-        return ', '.join(groups) if groups else 'User'
+        return ', '.join(groups) if groups and 'normal users' not in groups else 'User'
 
 
 class DeleteAccountView(LoginRequiredMixin, View):

@@ -46,7 +46,7 @@ class AccountViewTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, 'account.html')
         self.assertIn('email_form', response.context)
-        self.assertEqual(response.context['role'], 'normal users')
+        self.assertEqual(response.context['role'], 'User')
 
     def test_account_view_role_resolution(self):
         """Test _get_user_role for superuser, staff, grouped, and standalone users."""
@@ -86,4 +86,3 @@ class AccountViewTests(TestCase):
         self.normal_user.refresh_from_db()
         self.assertEqual(self.normal_user.email, 'regular@example.com')
         self.assertTrue(response.context['email_form'].errors)
-
