@@ -1,0 +1,85 @@
+{# Navigation copy is curated here. Only links available to this visitor are included. #}
+<template id="site-guide-catalog">
+    <a href="{% url 'pages:home' %}" data-title-en="Home" data-title-es="Inicio"
+       data-summary-en="The home page introduces Project ERASE and links to more information about its mission."
+       data-summary-es="La página de inicio presenta Project ERASE y enlaza a más información sobre su misión."
+       data-keywords="home|homepage|start|inicio|principal"></a>
+    <a href="{% url 'pages:about' %}" data-title-en="About" data-title-es="Acerca de"
+       data-summary-en="The About page describes Project ERASE and its goal of improving access to education."
+       data-summary-es="La página Acerca de describe Project ERASE y su objetivo de mejorar el acceso a la educación."
+       data-keywords="about|mission|organization|charity|project|acerca|misión|organización|proyecto"></a>
+    <a href="{% url 'pages:contact' %}" data-title-en="Contact" data-title-es="Contacto"
+       data-summary-en="The Contact page shows how to email the Project ERASE team with questions."
+       data-summary-es="La página Contacto muestra cómo enviar preguntas por correo al equipo de Project ERASE."
+       data-keywords="contact|email|reach|question|donate|donation|donations|volunteer|support|contacto|correo|pregunta|donar|donación|donaciones|voluntariado|ayuda"></a>
+    <a href="{% url 'pages:calendar' %}" data-title-en="Events Calendar" data-title-es="Calendario de eventos"
+       data-summary-en="The calendar shows scheduled events by month. Open an event to see its details and, when available, RSVP."
+       data-summary-es="El calendario muestra los eventos por mes. Abra un evento para ver sus detalles y, cuando esté disponible, confirmar asistencia."
+       data-keywords="event|events|calendar|date|schedule|rsvp|attend|register|evento|eventos|calendario|fecha|asistir|inscribir|reserva"></a>
+    <a href="{% url 'pages:shipment_map' %}" data-title-en="Shipment Map" data-title-es="Mapa de envíos"
+       data-summary-en="The interactive map shows shipment information and workshop locations with filters for city and date."
+       data-summary-es="El mapa interactivo muestra información sobre envíos y lugares de talleres, con filtros por ciudad y fecha."
+       data-keywords="map|shipment|shipments|workshop|workshops|location|locations|guatemala|mapa|envío|envíos|taller|talleres|ubicación|lugares"></a>
+    <a href="{% url 'pages:studentdb' %}" data-title-en="Student Database" data-title-es="Base de datos de estudiantes"
+       data-summary-en="The student database lets visitors browse and search student records. Staff can manage records there."
+       data-summary-es="La base de datos permite consultar y buscar registros de estudiantes. El personal puede administrarlos allí."
+       data-keywords="student|students|school|schools|database|records|estudiante|estudiantes|escuela|escuelas|base de datos|registros"></a>
+    {% if user.is_authenticated %}
+    <a href="{% url 'pages:account' %}" data-title-en="My Account" data-title-es="Mi cuenta"
+       data-summary-en="Your account page shows your profile and lets you update your email or delete your account."
+       data-summary-es="La página de su cuenta muestra su perfil y permite actualizar su correo o eliminar su cuenta."
+       data-keywords="account|profile|password|my email|cuenta|perfil|contraseña|mi correo"></a>
+    {% else %}
+    <a href="{% url 'pages:login' %}" data-title-en="Sign In" data-title-es="Iniciar sesión"
+       data-summary-en="Sign in to access your account and RSVP to events."
+       data-summary-es="Inicie sesión para acceder a su cuenta y confirmar asistencia a eventos."
+       data-keywords="login|log in|sign in|password|iniciar sesión|entrar|contraseña"></a>
+    <a href="{% url 'pages:signup' %}" data-title-en="Sign Up" data-title-es="Registrarse"
+       data-summary-en="Create an account here before signing in or RSVPing to an event."
+       data-summary-es="Cree una cuenta aquí antes de iniciar sesión o confirmar asistencia a un evento."
+       data-keywords="signup|sign up|register|create account|registrarse|crear cuenta"></a>
+    {% endif %}
+    {% if user.is_superuser %}
+    <a href="{% url 'pages:manage_users' %}" data-title-en="Manage Users" data-title-es="Administrar usuarios"
+       data-summary-en="Superusers can grant or revoke staff access on this page."
+       data-summary-es="Los superusuarios pueden conceder o revocar el acceso del personal en esta página."
+       data-keywords="manage users|users|permissions|staff access|administrar usuarios|usuarios|permisos"></a>
+    {% endif %}
+    {% if user.is_staff or user.is_superuser %}
+    <a href="{% url 'pages:reports' %}" data-title-en="Reports" data-title-es="Informes"
+       data-summary-en="Staff can review fundraising, workshop attendance, student support, and social media reports here."
+       data-summary-es="El personal puede consultar aquí informes de recaudación, asistencia a talleres, apoyo a estudiantes y redes sociales."
+       data-keywords="reports|report|analytics|fundraising|statistics|informes|informe|estadísticas|recaudación"></a>
+    <a href="{% url 'pages:custom_admin' %}" data-title-en="Admin Panel" data-title-es="Panel de administración"
+       data-summary-en="The admin panel shows staff tools and account statistics."
+       data-summary-es="El panel de administración muestra herramientas del personal y estadísticas de cuentas."
+       data-keywords="admin panel|admin|administration|panel de administración|administrador"></a>
+    <a href="{% url 'pages:rsvp_listing' %}" data-title-en="RSVP Listing" data-title-es="Lista de confirmaciones"
+       data-summary-en="Staff can review events with RSVPs and their attendee lists here."
+       data-summary-es="El personal puede consultar eventos con confirmaciones y sus listas de asistentes aquí."
+       data-keywords="rsvp listing|attendee|attendees|guest list|lista de confirmaciones|asistentes|invitados"></a>
+    {% endif %}
+</template>
+
+<div class="site-guide" id="site-guide">
+    <button class="site-guide-launcher" id="site-guide-launcher" type="button"
+            aria-controls="site-guide-panel" aria-expanded="false">Site guide</button>
+    <section class="site-guide-panel" id="site-guide-panel" aria-label="Site guide" hidden>
+        <div class="site-guide-header">
+            <div><strong id="site-guide-title">Site guide</strong><small id="site-guide-subtitle">Find your way around Project ERASE</small></div>
+            <button class="site-guide-close" id="site-guide-close" type="button" aria-label="Close site guide">×</button>
+        </div>
+        <div class="site-guide-log" id="site-guide-log" role="log" aria-live="polite" aria-relevant="additions text"></div>
+        <div class="site-guide-suggestions">
+            <button type="button" id="site-guide-summary">Summarize this page</button>
+            <button type="button" id="site-guide-events">Find events</button>
+        </div>
+        <form class="site-guide-form" id="site-guide-form">
+            <label class="site-guide-sr-only" id="site-guide-input-label" for="site-guide-input">Ask where to find information</label>
+            <input id="site-guide-input" type="text" maxlength="240" autocomplete="off" required
+                   placeholder="Ask where to find information…">
+            <button type="submit" id="site-guide-send">Send</button>
+        </form>
+        <p class="site-guide-note" id="site-guide-note">Answers come from this site's page guide. Questions stay in your browser.</p>
+    </section>
+</div>

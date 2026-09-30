@@ -1,11 +1,13 @@
 {% load static i18n %}
+{% get_current_language as LANGUAGE_CODE %}
 <!DOCTYPE html>
-<html lang="en">
+<html lang="{{ LANGUAGE_CODE }}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Project ERASE{% endblock %}</title>
     <link rel="stylesheet" href="{% static 'pages/css/base.css' %}">
+    <link rel="stylesheet" href="{% static 'pages/css/site_guide.css' %}">
     {% block extra_styles %}{% endblock %}
 </head>
 <body>
@@ -55,7 +57,6 @@
                 {% else %}
                 <li><a href="{% url 'pages:login' %}">{% trans "Login" %}</a></li>
                 {% endif %}
-                {% get_current_language as LANGUAGE_CODE %}
                 <li class="nav-language-item">
                     <div class="lang-switcher" aria-label="{% trans 'Language selector' %}">
                         <form method="post" action="{% url 'set_language' %}">
@@ -78,6 +79,9 @@
     </header>
 
     {% block content %}{% endblock %}
+
+    {% include 'site_guide.html' %}
+    <script src="{% static 'pages/javascript/site_guide.js' %}?v=1" defer></script>
 
 </body>
 </html>
