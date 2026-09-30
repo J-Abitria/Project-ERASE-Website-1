@@ -22,6 +22,29 @@ Django - Website framework to streamline building the application, with useful f
 2. Navigate to the mysite directory
 3. Open a terminal and run python manage.py runserver
 
+### Production database
+
+The students, workshops, reports, and event calendar Django apps share one
+database. Locally, the project uses `db.sqlite3`; in production, it uses the
+Neon PostgreSQL connection string in `DATABASE_URL`. Set that variable in the
+Vercel project's Production environment (and Preview if needed). The Neon CLI
+link command pulls the URL into the ignored local `.env` file; it does not set
+the Vercel environment variable for you. Because Vercel redacts sensitive
+values when pulling them for a local CLI build, also add the same connection
+string as a GitHub Actions repository secret named `DATABASE_URL`. The deploy
+workflow uses it during the prebuild and logs only its URL scheme.
+
+The production GitHub Actions job runs Django migrations against Neon before
+deploying the website. The app-specific migrations create the student,
+workshop, report, and event/RSVP tables in this shared database. Existing data
+in a local SQLite file is not copied automatically.
+
+The production workflow also ensures one Django superuser exists. Add these as
+GitHub Actions repository secrets: `DJANGO_SUPERUSER_USERNAME`,
+`DJANGO_SUPERUSER_EMAIL`, and `DJANGO_SUPERUSER_PASSWORD`. They are needed by
+the workflow only; they do not need to be set in Vercel. The password is set
+when the account is first created and is not reset on later deployments.
+
 ## Functionality
 
 Currently this website is a skeleton site, meant to showcase the branding and design possibilities. There are text buttons at the top of the site, that allow you to navigate to different pages.

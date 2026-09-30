@@ -24,14 +24,9 @@ local_settings.py
 db.sqlite3
 db.sqlite3-journal
 /media
-/staticfiles
+staticfiles/
+**/staticfiles/
 
-# Migrations
-**/migrations/
-**/migrations/**
-migrations/
-
-# Static Files (Ignore top-level collected static, preserve app static in pages)
 /static/
 /code/ERASEwebsite/static/
 !**/pages/static/
