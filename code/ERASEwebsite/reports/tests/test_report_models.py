@@ -68,16 +68,20 @@ class ReportModelsTests(TestCase):
             date=date(2026, 5, 1),
             followers=1200,
             post_reach=4500,
-            engagement=350,
+            likes=200,
+            shares=50,
+            comments=100,
             notes="May campaign launch",
         )
         m2 = SocialMediaMetric.objects.create(
-            platform="linkedin",
+            platform="instagram",
             date=date(2026, 6, 1),
         )
         self.assertEqual(str(m1), "Instagram – 2026-05-01")
-        self.assertEqual(str(m2), "LinkedIn – 2026-06-01")
+        self.assertEqual(str(m2), "Instagram – 2026-06-01")
         self.assertIsNone(m2.followers)
         self.assertIsNone(m2.post_reach)
-        self.assertIsNone(m2.engagement)
+        self.assertIsNone(m2.likes)
+        self.assertIsNone(m2.shares)
+        self.assertIsNone(m2.comments)
 
