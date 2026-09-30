@@ -22,6 +22,21 @@ Django - Website framework to streamline building the application, with useful f
 2. Navigate to the mysite directory
 3. Open a terminal and run python manage.py runserver
 
+### Production database
+
+The students, workshops, reports, and event calendar Django apps share one
+database. Locally, the project uses `db.sqlite3`; in production, it uses the
+Neon PostgreSQL connection string in `DATABASE_URL`. Set that variable in the
+Vercel project's Production environment (and Preview if needed). The Neon CLI
+link command pulls the URL into the ignored local `.env` file; it does not set
+the Vercel environment variable for you.
+
+The repository's `neon.ts` is an empty Neon policy. `neon deploy` applies that
+policy to the linked Neon branch; it does not deploy this website or run Django
+migrations. Before first use of a new database, run `python manage.py migrate`
+from `code/ERASEwebsite` with `DATABASE_URL` set to that database's connection
+string. Existing data in a local SQLite file is not copied automatically.
+
 ## Functionality
 
 Currently this website is a skeleton site, meant to showcase the branding and design possibilities. There are text buttons at the top of the site, that allow you to navigate to different pages.
