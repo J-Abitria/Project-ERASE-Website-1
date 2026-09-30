@@ -26,8 +26,8 @@
         </div>
 
         <div class="crop-buttons">
-            <button id="cropSave" class="btn btn-primary">Save Crop</button>
             <button id="cropCancel" class="btn btn-danger">Cancel</button>
+            <button id="cropSave" class="btn btn-primary">Save Crop</button>
         </div>
     </div>
 </div>
@@ -152,10 +152,10 @@
                     {% if request.user.is_staff or request.user.is_superuser %}
                     <form method="POST">
                         {% csrf_token %}
-                        <input type="hidden" name="student_name" value="{{ student.name }}">
+                        <input type="hidden" name="student_id" value="{{ student.id }}">
                         <button type="submit" name="action" value="delete" class="btn btn-danger">
                             Remove Student
-                        </button>   
+                        </button>
                     </form>
                     {% endif %}
                 </div>

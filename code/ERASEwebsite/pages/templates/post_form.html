@@ -1,0 +1,118 @@
+{% extends "base.html" %}
+{% load static i18n %}
+
+{% block title %}{{ page_title }} - Project ERASE{% endblock %}
+
+{% block extra_styles %}
+    <link rel="stylesheet" href="{% static 'pages/css/blog.css' %}">
+    {{ form.media }}
+{% endblock %}
+
+{% block content %}
+<div class="blog-page">
+    <div class="page-header">
+        <h1>{{ page_title }}</h1>
+        <p>
+            {% if post %}
+                {% trans "Update your blog post details and content." %}
+            {% else %}
+                {% trans "Create a new blog post for your blog." %}
+            {% endif %}
+        </p>
+    </div>
+
+    <div class="blog-container">
+        <div class="blog-form-card">
+
+            {% if form.non_field_errors %}
+                <div class="blog-form-errors">{{ form.non_field_errors }}</div>
+            {% endif %}
+
+            <form method="POST" enctype="multipart/form-data" class="blog-post-form">
+                {% csrf_token %}
+
+                <div class="blog-form-group">
+                    <label for="{{ form.title.id_for_label }}">{% trans "Title" %}</label>
+                    {{ form.title }}
+                    {% for error in form.title.errors %}
+                        <div class="blog-form-error">{{ error }}</div>
+                    {% endfor %}
+                </div>
+
+                <div class="blog-form-group">
+                    <label for="{{ form.slug.id_for_label }}">{% trans "URL" %}</label>
+                    {{ form.slug }}
+                    <span class="blog-form-help">
+                        {% trans "Use a short, descriptive URL such as: my-first-blog-post" %}
+                    </span>
+                    {% for error in form.slug.errors %}
+                        <div class="blog-form-error">{{ error }}</div>
+                    {% endfor %}
+                </div>
+
+                <div class="blog-form-group blog-form-content-group">
+                    <label for="{{ form.content.id_for_label }}">{% trans "Content" %}</label>
+                    {{ form.content }}
+                    {% for error in form.content.errors %}
+                        <div class="blog-form-error">{{ error }}</div>
+                    {% endfor %}
+                </div>
+
+                <div class="blog-form-group">
+                    <label for="{{ form.featured_image.id_for_label }}">
+                        {% trans "Featured Image" %}
+                    </label>
+
+                    {% if post.featured_image %}
+                        <div class="blog-current-image">
+                            <img src="{{ post.featured_image.url }}" alt="{{ post.title }}">
+                            <div class="blog-current-image-info">
+                                <strong>{% trans "Current featured image" %}</strong>
+                                <span>{% trans "Upload a new image below to replace it." %}</span>
+                            </div>
+                        </div>
+                    {% endif %}
+
+                    <div class="blog-file-input">{{ form.featured_image }}</div>
+
+                    {% for error in form.featured_image.errors %}
+                        <div class="blog-form-error">{{ error }}</div>
+                    {% endfor %}
+                </div>
+
+                <div class="blog-form-group blog-form-published-group">
+                    <div class="blog-form-checkbox">
+                        {{ form.published }}
+                        <label for="{{ form.published.id_for_label }}">
+                            <span class="blog-checkbox-title">
+                                {% trans "Publish this post" %}
+                            </span>
+                            <span class="blog-checkbox-description">
+                                {% trans "Make this post visible on the public blog." %}
+                            </span>
+                        </label>
+                    </div>
+
+                    {% for error in form.published.errors %}
+                        <div class="blog-form-error">{{ error }}</div>
+                    {% endfor %}
+                </div>
+
+                <div class="blog-form-actions">
+                    <a href="{% url 'blog:manage_posts' %}" class="btn btn-secondary">
+                        {% trans "Cancel" %}
+                    </a>
+                    <button type="submit" class="btn btn-primary">
+                        {% if post %}
+                            {% trans "Save Changes" %}
+                        {% else %}
+                            {% trans "Create Post" %}
+                        {% endif %}
+                    </button>
+                </div>
+            </form>
+
+        </div>
+    </div>
+</div>
+{% endblock %}
