@@ -79,7 +79,24 @@ jobs:
       - name: Pull Vercel Environment Information
         run: vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
 
+      - name: Verify DATABASE_URL scheme
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: |
+          python - <<'PY'
+          import os
+          from urllib.parse import urlsplit
+
+          database_url = os.environ.get('DATABASE_URL', '').strip()
+          scheme = urlsplit(database_url).scheme
+          print(f'DATABASE_URL scheme: {scheme or "<missing>"}')
+          if scheme not in {'postgres', 'postgresql'}:
+              raise SystemExit('Set the DATABASE_URL GitHub Actions secret to a PostgreSQL URL.')
+          PY
+
       - name: Build Project Artifacts
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
         run: vercel build --prod --token=${{ secrets.VERCEL_TOKEN }}
 
       - name: Deploy Project Artifacts to Vercel
