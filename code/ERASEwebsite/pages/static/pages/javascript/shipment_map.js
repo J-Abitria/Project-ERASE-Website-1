@@ -7,6 +7,7 @@ var routePoints = [];
 var completedRoute = null;
 var remainingRoute = null;
 var shipmentMarker = null;
+var mapI18n = document.getElementById('shipment-map-i18n').dataset;
 
 function haversineDistance(lat1, lon1, lat2, lon2) {
   var R = 3958.8;
@@ -45,7 +46,7 @@ function resetMapRoute() {
     shipmentMarker.setLatLng(originCoord);
   } else {
     shipmentMarker = L.circleMarker(originCoord, { radius: 12, color: 'black', fillColor: 'red', fillOpacity: 1, weight: 2 }).addTo(map);
-    shipmentMarker.bindPopup('ERASE Shipment 001');
+    shipmentMarker.bindPopup(mapI18n.shipment + ' ERASE 001');
   }
 }
 
@@ -56,11 +57,11 @@ L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.p
   subdomains: ['a', 'b', 'c', 'd']
 }).addTo(map);
 resetMapRoute();
-L.marker(originCoord).addTo(map).bindPopup('Origin: Pullman, WA');
-L.marker(destinationCoord).addTo(map).bindPopup('Destination: Guatemala');
+L.marker(originCoord).addTo(map).bindPopup(mapI18n.origin + ': Pullman, WA');
+L.marker(destinationCoord).addTo(map).bindPopup(mapI18n.destination + ': Guatemala');
 
 var totalDistance = haversineDistance(originCoord[0], originCoord[1], destinationCoord[0], destinationCoord[1]);
-document.getElementById('remaining').innerText = totalDistance.toFixed(2) + ' miles';
+document.getElementById('remaining').innerText = totalDistance.toFixed(2) + ' ' + mapI18n.miles;
 
 function updateShipmentPosition() {
   if (!startTime || totalTransitSeconds <= 0) return;
@@ -73,17 +74,17 @@ function updateShipmentPosition() {
   shipmentMarker.setLatLng(position);
   completedRoute.setLatLngs(routePoints.slice(0, index + 1));
   remainingRoute.setLatLngs(routePoints.slice(index));
-  document.getElementById('timer').innerText = elapsedSeconds.toFixed(1) + ' s';
+  document.getElementById('timer').innerText = elapsedSeconds.toFixed(1) + ' ' + mapI18n.seconds;
   var traveled = totalDistance * progress;
   var remaining = totalDistance - traveled;
-  document.getElementById('remaining').innerText = remaining.toFixed(2) + ' miles';
+  document.getElementById('remaining').innerText = remaining.toFixed(2) + ' ' + mapI18n.miles;
   document.getElementById('progress').innerText = (progress * 100).toFixed(1) + '%';
-  document.getElementById('distance').innerText = traveled.toFixed(2) + ' miles';
-  shipmentMarker.bindPopup('Shipment ERASE-001<br>' + (progress * 100).toFixed(1) + '% complete');
+  document.getElementById('distance').innerText = traveled.toFixed(2) + ' ' + mapI18n.miles;
+  shipmentMarker.bindPopup(mapI18n.shipment + ' ERASE-001<br>' + (progress * 100).toFixed(1) + '%');
   if (progress >= 1) {
     clearInterval(animationInterval);
     animationInterval = null;
-    document.getElementById('status').innerText = 'Delivered';
+    document.getElementById('status').innerText = mapI18n.delivered;
   }
 }
 
@@ -91,7 +92,7 @@ function startShipment() {
   if (totalTransitSeconds <= 0) return;
   if (animationInterval) clearInterval(animationInterval);
   startTime = Date.now();
-  document.getElementById('status').innerText = 'In Transit';
+  document.getElementById('status').innerText = mapI18n.inTransit;
   var etaTime = new Date(Date.now() + totalTransitSeconds * 1000);
   document.getElementById('eta').innerText = etaTime.toLocaleTimeString();
   animationInterval = setInterval(updateShipmentPosition, 100);
@@ -102,7 +103,7 @@ function pauseShipment() {
     clearInterval(animationInterval);
     animationInterval = null;
   }
-  document.getElementById('status').innerText = 'Paused';
+  document.getElementById('status').innerText = mapI18n.paused;
 }
 
 function resetShipment() {
@@ -113,11 +114,11 @@ function resetShipment() {
   startTime = null;
   resetMapRoute();
   totalDistance = haversineDistance(originCoord[0], originCoord[1], destinationCoord[0], destinationCoord[1]);
-  document.getElementById('timer').innerText = '0 s';
-  document.getElementById('distance').innerText = '0 miles';
-  document.getElementById('remaining').innerText = totalDistance.toFixed(2) + ' miles';
+  document.getElementById('timer').innerText = '0 ' + mapI18n.seconds;
+  document.getElementById('distance').innerText = '0 ' + mapI18n.miles;
+  document.getElementById('remaining').innerText = totalDistance.toFixed(2) + ' ' + mapI18n.miles;
   document.getElementById('progress').innerText = '0%';
-  document.getElementById('status').innerText = 'Waiting';
+  document.getElementById('status').innerText = mapI18n.waiting;
   document.getElementById('eta').innerText = '--';
 }
 
@@ -181,13 +182,13 @@ shipmentForm.addEventListener('submit', function (event) {
   // Geocode origin city
   geocodeCity(originCity, function(originLatLng) {
     if (!originLatLng) {
-      alert('Could not find coordinates for origin city: ' + originCity);
+      alert(mapI18n.originError + ' ' + originCity);
       return;
     }
     // Geocode destination city
     geocodeCity(destCity, function(destLatLng) {
       if (!destLatLng) {
-        alert('Could not find coordinates for destination city: ' + destCity);
+        alert(mapI18n.destinationError + ' ' + destCity);
         return;
       }
       originCoord = [originLatLng[0], originLatLng[1]];
@@ -210,6 +211,10 @@ function getWorkshopStatus(location) {
   return location.date > todayIso ? 'future' : 'past';
 }
 
+function getWorkshopStatusLabel(status) {
+  return mapI18n[status] || status;
+}
+
 function getLocationText(location) {
   return [
     location.title,
@@ -229,7 +234,7 @@ function renderCityOptions(locations) {
     }
   });
   cities.sort(function (a, b) { return a.localeCompare(b); });
-  cityFilter.innerHTML = '<option value="">All cities</option>';
+  cityFilter.innerHTML = '<option value="">' + mapI18n.allCities + '</option>';
   cities.forEach(function (city) {
     var option = document.createElement('option');
     option.value = city;
@@ -275,7 +280,7 @@ function updateFilterSummary(filteredLocations) {
   var summary = document.getElementById('filterSummary');
   var count = filteredLocations.length;
   var total = workshopMarkers.length;
-  summary.textContent = 'Showing ' + count + ' of ' + total + ' workshop' + (total === 1 ? '.' : 's.');
+  summary.textContent = mapI18n.showing + ' ' + count + ' ' + mapI18n.of + ' ' + total + ' ' + (total === 1 ? mapI18n.workshopSingular : mapI18n.workshopPlural) + '.';
 }
 
 function updateWorkshopFilters() {
@@ -315,7 +320,7 @@ function buildEventList(locations) {
   var container = document.getElementById('event-list');
   container.innerHTML = '';
   if (!locations.length) {
-    var emptyText = workshopMarkers.length ? 'No workshops match the current filters.' : 'No workshop locations yet. Use the Django admin area to add new pins and photos.';
+    var emptyText = workshopMarkers.length ? mapI18n.noFilterMatches : mapI18n.noLocations;
     container.innerHTML = '<div class="empty-state"><strong>' + emptyText + '</strong></div>';
     return;
   }
@@ -338,20 +343,20 @@ function buildEventList(locations) {
     card.appendChild(header);
     if (location.date) {
       var date = document.createElement('p');
-      date.innerHTML = '<strong>Date:</strong> ' + location.date;
+      date.innerHTML = '<strong>' + mapI18n.date + '</strong> ' + location.date;
       card.appendChild(date);
     }
     var status = document.createElement('p');
-    status.innerHTML = '<strong>Status:</strong> ' + getWorkshopStatus(location).replace(/^\w/, function (letter) { return letter.toUpperCase(); });
+    status.innerHTML = '<strong>' + mapI18n.status + '</strong> ' + getWorkshopStatusLabel(getWorkshopStatus(location));
     card.appendChild(status);
     if (location.city) {
       var city = document.createElement('p');
-      city.innerHTML = '<strong>City:</strong> ' + location.city;
+      city.innerHTML = '<strong>' + mapI18n.city + '</strong> ' + location.city;
       card.appendChild(city);
     }
     if (location.address && location.address !== location.city) {
       var address = document.createElement('p');
-      address.innerHTML = '<strong>Location:</strong> ' + location.address;
+      address.innerHTML = '<strong>' + mapI18n.location + '</strong> ' + location.address;
       card.appendChild(address);
     }
     if (location.description) {
@@ -373,12 +378,12 @@ function buildEventList(locations) {
 
 function deleteWorkshop(workshopId) {
   console.log('deleteWorkshop called with ID:', workshopId);
-  if (confirm('Are you sure you want to delete this workshop?')) {
+  if (confirm(mapI18n.deleteConfirm)) {
     console.log('User confirmed deletion');
     const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]');
     console.log('CSRF token element:', csrfToken);
     if (!csrfToken) {
-      alert('CSRF token not found');
+      alert(mapI18n.csrfMissing);
       return;
     }
     const csrfValue = csrfToken.value;
@@ -407,17 +412,17 @@ function deleteWorkshop(workshopId) {
         location.reload();
       } else {
         console.log('Error:', data.error);
-          if (data.error === 'Authentication required') {
-          alert('You must be logged in as an admin to delete workshops.');
+          if (data.error === mapI18n.authRequired) {
+          alert(mapI18n.adminDeleteRequired);
           window.location.href = (window.urls && window.urls.login) ? window.urls.login : window.location.href;
         } else {
-          alert('Error deleting workshop: ' + data.error);
+          alert(mapI18n.deleteError + ' ' + data.error);
         }
       }
     })
     .catch(error => {
       console.error('Fetch error:', error);
-      alert('Error deleting workshop: ' + error.message);
+      alert(mapI18n.deleteFailed);
     });
   } else {
     console.log('User cancelled deletion');
@@ -435,7 +440,7 @@ function cancelPinPlacement() {
     map.removeLayer(newPinMarker);
     newPinMarker = null;
   }
-  if (pinHint) { pinHint.innerText = 'Click the button, then click the map to place a new pin.'; }
+  if (pinHint) { pinHint.innerText = mapI18n.pinPlacementHint; }
   if (pinModal) { pinModal.style.display = 'none'; }
 }
 
@@ -448,7 +453,7 @@ var cancelPinButton = document.getElementById('cancelPinButton');
 
 if (addPinButton) {
   addPinButton.addEventListener('click', function () {
-    if (pinHint) { pinHint.innerText = 'Click anywhere on the map to place a new workshop pin.'; }
+    if (pinHint) { pinHint.innerText = mapI18n.pinPlacementMapHint; }
     map.once('click', function (e) {
       var latlng = e.latlng;
       if (newPinMarker) { map.removeLayer(newPinMarker); }

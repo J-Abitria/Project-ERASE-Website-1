@@ -49,6 +49,8 @@ when the account is first created and is not reset on later deployments.
 
 Currently this website is a skeleton site, meant to showcase the branding and design possibilities. There are text buttons at the top of the site, that allow you to navigate to different pages.
 
+The floating [site guide](docs/site-guide.md) answers page-finding questions and summarizes the current page without an AI API or per-message compute cost.
+
 ## Known Problems
 
 No known issues.

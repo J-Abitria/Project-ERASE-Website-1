@@ -12,78 +12,78 @@
 {% block content %}
 <div class="container">
   <div class="header">
-    <h2>Project ERASE Interactive Map</h2>
-    <p>Track shipments in real-time and view workshop locations managed through the admin interface.</p>
+    <h2>{% trans "Project ERASE Interactive Map" %}</h2>
+    <p>{% trans "Track shipments in real-time and view workshop locations managed through the admin interface." %}</p>
   </div>
   <div class="controls-section">
     <div class="control-card">
-      <h3>Shipment Controls</h3>
+      <h3>{% trans "Shipment Controls" %}</h3>
       <div class="button-group">
-        <button id="addShipmentBtn" class="btn btn-primary">Add Shipment</button>
-        <button id="startShipmentBtn" class="btn btn-success">Start</button>
-        <button id="pauseShipmentBtn" class="btn btn-secondary">Pause</button>
-        <button id="resetShipmentBtn" class="btn btn-danger">Reset</button>
+        <button id="addShipmentBtn" class="btn btn-primary">{% trans "Add Shipment" %}</button>
+        <button id="startShipmentBtn" class="btn btn-success">{% trans "Start" %}</button>
+        <button id="pauseShipmentBtn" class="btn btn-secondary">{% trans "Pause" %}</button>
+        <button id="resetShipmentBtn" class="btn btn-danger">{% trans "Reset" %}</button>
       </div>
     </div>
     <div class="control-card">
-      <h3>Workshop Pins</h3>
-      <p style="font-size:12px; color:#666;">User: {{ user.username|default:"Not logged in" }} (Staff: {{ user.is_staff|yesno:"Yes,No" }})</p>
+      <h3>{% trans "Workshop Pins" %}</h3>
+      <p style="font-size:12px; color:#666;">{% trans "User:" %} {% if user.is_authenticated %}{{ user.username }}{% else %}{% trans "Not logged in" %}{% endif %} ({% trans "Staff:" %} {% if user.is_staff %}{% trans "Yes" %}{% else %}{% trans "No" %}{% endif %})</p>
       {% if show_add_pin %}
       <div class="button-group">
-        <button id="addPinButton" class="btn btn-primary">Add Workshop Pin</button>
+        <button id="addPinButton" class="btn btn-primary">{% trans "Add Workshop Pin" %}</button>
       </div>
-      <span id="pinHint" style="margin-top:10px;display:block;color:#555;font-size:14px;">Click the button, then click the map to place a new pin.</span>
+      <span id="pinHint" style="margin-top:10px;display:block;color:#555;font-size:14px;">{% trans "Click the button, then click the map to place a new pin." %}</span>
       {% elif user.is_authenticated %}
-      <span style="color:#555;">Only admin users can add workshop pins from this page.</span>
+      <span style="color:#555;">{% trans "Only admin users can add workshop pins from this page." %}</span>
       {% else %}
-      <span style="color:#555;">Log in as an admin to add workshop pins directly from this page.</span>
+      <span style="color:#555;">{% trans "Log in as an admin to add workshop pins directly from this page." %}</span>
       {% endif %}
     </div>
     <div class="control-card">
-      <h3>Workshop Filters</h3>
+      <h3>{% trans "Workshop Filters" %}</h3>
       <div class="filter-grid">
         <div class="filter-field">
-          <label for="workshopSearch">Search</label>
-          <input id="workshopSearch" type="search" placeholder="Title or location">
+          <label for="workshopSearch">{% trans "Search" %}</label>
+          <input id="workshopSearch" type="search" placeholder="{% trans 'Title or location' %}">
         </div>
         <div class="filter-field">
-          <label for="cityFilter">City</label>
+          <label for="cityFilter">{% trans "City" %}</label>
           <select id="cityFilter">
-            <option value="">All cities</option>
+            <option value="">{% trans "All cities" %}</option>
           </select>
         </div>
         <div class="filter-field">
-          <label for="statusFilter">Status</label>
+          <label for="statusFilter">{% trans "Status" %}</label>
           <select id="statusFilter">
-            <option value="">All statuses</option>
-            <option value="future">Future</option>
-            <option value="today">Today</option>
-            <option value="past">Past</option>
+            <option value="">{% trans "All statuses" %}</option>
+            <option value="future">{% trans "Future" %}</option>
+            <option value="today">{% trans "Today" %}</option>
+            <option value="past">{% trans "Past" %}</option>
           </select>
         </div>
         <div class="filter-field">
-          <label for="startDateFilter">Start date</label>
+          <label for="startDateFilter">{% trans "Start date" %}</label>
           <input id="startDateFilter" type="date">
         </div>
         <div class="filter-field">
-          <label for="endDateFilter">End date</label>
+          <label for="endDateFilter">{% trans "End date" %}</label>
           <input id="endDateFilter" type="date">
         </div>
         <div class="filter-actions">
-          <label style="display:flex;align-items:center;gap:8px;color:#34495e;font-size:14px;"><input id="futureOnlyFilter" type="checkbox"> Future only</label>
-          <button id="clearWorkshopFilters" class="btn btn-secondary" type="button">Clear</button>
+          <label style="display:flex;align-items:center;gap:8px;color:#34495e;font-size:14px;"><input id="futureOnlyFilter" type="checkbox"> {% trans "Future only" %}</label>
+          <button id="clearWorkshopFilters" class="btn btn-secondary" type="button">{% trans "Clear" %}</button>
         </div>
       </div>
-      <div id="filterSummary" class="filter-summary">Showing all workshops.</div>
+      <div id="filterSummary" class="filter-summary">{% trans "Showing all workshops." %}</div>
     </div>
   </div>
   <div class="status-display">
-    <strong>Status:</strong> <span id="status">Waiting</span><br>
-    <strong>ETA:</strong> <span id="eta">--</span><br>
-    <strong>Elapsed Time:</strong> <span id="timer">0 s</span><br>
-    <strong>Progress:</strong> <span id="progress">0%</span><br>
-    <strong>Distance Traveled:</strong> <span id="distance">0 miles</span><br>
-    <strong>Distance Remaining:</strong> <span id="remaining">0 miles</span>
+    <strong>{% trans "Status:" %}</strong> <span id="status">{% trans "Waiting" %}</span><br>
+    <strong>{% trans "ETA:" %}</strong> <span id="eta">--</span><br>
+    <strong>{% trans "Elapsed Time:" %}</strong> <span id="timer">0 {% trans "seconds" %}</span><br>
+    <strong>{% trans "Progress:" %}</strong> <span id="progress">0%</span><br>
+    <strong>{% trans "Distance Traveled:" %}</strong> <span id="distance">0 {% trans "miles" %}</span><br>
+    <strong>{% trans "Distance Remaining:" %}</strong> <span id="remaining">0 {% trans "miles" %}</span>
   </div>
   <div id="map"></div>
   <div id="event-list" class="event-list"></div>
@@ -95,33 +95,33 @@
 <div id="shipmentModal" class="modal">
   <div class="modal-content">
     <span class="close" id="closeShipmentModal">&times;</span>
-    <h3>Add New Shipment</h3>
+    <h3>{% trans "Add New Shipment" %}</h3>
     <form id="shipmentForm">
       <div class="form-group">
-        <label for="originCity">Origin City:</label>
-        <input type="text" id="originCity" placeholder="e.g., Pullman, WA" required>
+        <label for="originCity">{% trans "Origin City:" %}</label>
+        <input type="text" id="originCity" placeholder="{% trans 'e.g., Pullman, WA' %}" required>
       </div>
       <div class="form-group">
-        <label for="destCity">Destination City:</label>
-        <input type="text" id="destCity" placeholder="e.g., Guatemala City, Guatemala" required>
+        <label for="destCity">{% trans "Destination City:" %}</label>
+        <input type="text" id="destCity" placeholder="{% trans 'e.g., Guatemala City, Guatemala' %}" required>
       </div>
       <div class="form-group">
-        <label for="transitDays">Transit Time - Days:</label>
+        <label for="transitDays">{% trans "Transit Time - Days:" %}</label>
         <input type="number" id="transitDays" value="0" min="0">
       </div>
       <div class="form-group">
-        <label for="transitHours">Hours:</label>
+        <label for="transitHours">{% trans "Hours:" %}</label>
         <input type="number" id="transitHours" value="0" min="0" max="23">
       </div>
       <div class="form-group">
-        <label for="transitMinutes">Minutes:</label>
+        <label for="transitMinutes">{% trans "Minutes:" %}</label>
         <input type="number" id="transitMinutes" value="1" min="0" max="59">
       </div>
       <div class="form-group">
-        <label for="transitSeconds">Seconds:</label>
+        <label for="transitSeconds">{% trans "Seconds:" %}</label>
         <input type="number" id="transitSeconds" value="0" min="0" max="59">
       </div>
-      <button type="submit" class="btn btn-primary">Create Shipment</button>
+      <button type="submit" class="btn btn-primary">{% trans "Create Shipment" %}</button>
     </form>
   </div>
 </div>
@@ -129,35 +129,35 @@
 <div id="pinModal" class="modal">
   <div class="modal-content">
     <span class="close" id="closePinModal">&times;</span>
-    <h3>Add Workshop Pin</h3>
+    <h3>{% trans "Add Workshop Pin" %}</h3>
     <form id="new-pin-form" action="{% url 'pages:shipment_map' %}" method="post" enctype="multipart/form-data">
       {% csrf_token %}
       <input type="hidden" name="latitude" id="pinLatitude">
       <input type="hidden" name="longitude" id="pinLongitude">
-      <div style="margin-bottom:8px;"><strong>New workshop location:</strong> <span id="pinCoordinates">None</span></div>
+      <div style="margin-bottom:8px;"><strong>{% trans "New workshop location:" %}</strong> <span id="pinCoordinates">{% trans "None" %}</span></div>
       <div class="form-group">
-        <label>Title:</label>
+        <label>{% trans "Title:" %}</label>
         <input id="pinTitle" name="title" type="text" required>
       </div>
       <div class="form-group">
-        <label>City:</label>
-        <input id="pinCity" name="city" type="text" placeholder="e.g., Pullman, WA">
+        <label>{% trans "City:" %}</label>
+        <input id="pinCity" name="city" type="text" placeholder="{% trans 'e.g., Pullman, WA' %}">
       </div>
       <div class="form-group">
-        <label>Date:</label>
+        <label>{% trans "Date:" %}</label>
         <input id="pinDate" name="date" type="date" required>
       </div>
       <div class="form-group">
-        <label>Description:</label>
+        <label>{% trans "Description:" %}</label>
         <textarea id="pinDescription" name="description" rows="4"></textarea>
       </div>
       <div class="form-group">
-        <label>Photo (optional):</label>
+        <label>{% trans "Photo (optional):" %}</label>
         <input name="photo" type="file" accept="image/*">
       </div>
       <div class="button-group">
-        <button type="submit" class="btn btn-primary">Save Workshop Pin</button>
-        <button id="cancelPinButton" type="button" class="btn btn-secondary">Cancel</button>
+        <button type="submit" class="btn btn-primary">{% trans "Save Workshop Pin" %}</button>
+        <button id="cancelPinButton" type="button" class="btn btn-secondary">{% trans "Cancel" %}</button>
       </div>
     </form>
   </div>
@@ -165,6 +165,42 @@
 
 {% url 'pages:shipment_map' as shipment_map_url %}
 {% url 'pages:login' as login_url %}
+<div id="shipment-map-i18n" hidden
+  data-waiting="{% trans 'Waiting' %}"
+  data-in-transit="{% trans 'In Transit' %}"
+  data-delivered="{% trans 'Delivered' %}"
+  data-paused="{% trans 'Paused' %}"
+  data-future="{% trans 'Future' %}"
+  data-today="{% trans 'Today' %}"
+  data-past="{% trans 'Past' %}"
+  data-unknown="{% trans 'Unknown' %}"
+  data-seconds="{% trans 'seconds' %}"
+  data-miles="{% trans 'miles' %}"
+  data-shipment="{% trans 'Shipment' %}"
+  data-origin="{% trans 'Origin' %}"
+  data-destination="{% trans 'Destination' %}"
+  data-all-cities="{% trans 'All cities' %}"
+  data-no-filter-matches="{% trans 'No workshops match the current filters.' %}"
+  data-no-locations="{% trans 'No workshop locations yet. Use the Django admin area to add new pins and photos.' %}"
+  data-showing="{% trans 'Showing' %}"
+  data-of="{% trans 'of' %}"
+  data-workshop-singular="{% trans 'workshop' %}"
+  data-workshop-plural="{% trans 'workshops' %}"
+  data-date="{% trans 'Date:' %}"
+  data-status="{% trans 'Status:' %}"
+  data-city="{% trans 'City:' %}"
+  data-location="{% trans 'Location:' %}"
+  data-delete-confirm="{% trans 'Are you sure you want to delete this workshop?' %}"
+  data-csrf-missing="{% trans 'CSRF token not found' %}"
+  data-auth-required="{% trans 'Authentication required' %}"
+  data-admin-delete-required="{% trans 'You must be logged in as an admin to delete workshops.' %}"
+  data-delete-error="{% trans 'Error deleting workshop:' %}"
+  data-delete-failed="{% trans 'Could not delete workshop.' %}"
+  data-pin-placement-hint="{% trans 'Click the button, then click the map to place a new pin.' %}"
+  data-pin-placement-map-hint="{% trans 'Click anywhere on the map to place a new workshop pin.' %}"
+  data-origin-error="{% trans 'Could not find coordinates for origin city:' %}"
+  data-destination-error="{% trans 'Could not find coordinates for destination city:' %}">
+</div>
 <script>
   window.workshopMarkersData = JSON.parse('{{ workshop_markers_json|default:"[]"|escapejs }}');
   window.urls = {

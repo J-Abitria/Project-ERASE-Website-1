@@ -1,4 +1,5 @@
 // Image cropping logic
+const studentDbI18n = document.getElementById('studentdb-i18n').dataset;
 let cropper;
 const fileInput = document.querySelector("input[name='photo']");
 const cropModal = document.getElementById("cropModal");
@@ -122,7 +123,7 @@ function filterStudents() {
 
     studentCards.forEach(card => {
         const name = card.querySelector(".student-details div:nth-child(1)").innerText.toLowerCase();
-        const gender = card.querySelector(".student-details div:nth-child(2)").innerText.split(":").pop().trim().toLowerCase();        
+        const gender = card.dataset.gender.toLowerCase();
         const school = card.querySelector(".student-details div:nth-child(3)").innerText.toLowerCase();
         const matchesName = name.includes(nameVal);
         const matchesGender = (genderVal === "" || gender === genderVal);        
@@ -158,7 +159,7 @@ processBtn.onclick = async () => {
     const csvFile = document.getElementById('bulkCSV').files[0];
     const zipFile = document.getElementById('bulkZIP').files[0];
 
-    if (!csvFile || !zipFile) return alert("Please select both CSV and ZIP files.");
+    if (!csvFile || !zipFile) return alert(studentDbI18n.selectFiles);
 
     const zip = await JSZip.loadAsync(zipFile);
     const csvText = await csvFile.text();
@@ -205,7 +206,7 @@ function renderRow(student) {
         <td><input type="text" value="${student.name}" onchange="updateStudent(${student.id}, 'name', this.value)"></td>
         <td><input type="text" value="${student.gender}" style="width:80px" onchange="updateStudent(${student.id}, 'gender', this.value)"></td>
         <td><input type="text" value="${student.school}" onchange="updateStudent(${student.id}, 'school', this.value)"></td>
-        <td><button class="btn btn-danger" onclick="removeStaged(${student.id})">Delete</button></td>
+        <td><button class="btn btn-danger" onclick="removeStaged(${student.id})">${studentDbI18n.delete}</button></td>
     `;
     previewBody.appendChild(tr);
 }

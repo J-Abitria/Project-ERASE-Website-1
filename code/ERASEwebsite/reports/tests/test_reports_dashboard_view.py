@@ -129,15 +129,17 @@ class ReportsDashboardViewTests(TestCase):
         # Valid POST
         valid_res = self.client.post(self.url, {
             'form_type': 'social',
-            'platform': 'facebook',
+            'platform': 'instagram',
             'date': '2026-08-01',
             'followers': 2500,
             'post_reach': 6000,
-            'engagement': 400,
+            'likes': 250,
+            'shares': 75,
+            'comments': 75,
             'notes': 'Quarterly update',
         })
         self.assertRedirects(valid_res, self.url + '?tab=social')
-        self.assertTrue(SocialMediaMetric.objects.filter(platform='facebook').exists())
+        self.assertTrue(SocialMediaMetric.objects.filter(platform='instagram').exists())
 
         # Invalid POST
         invalid_res = self.client.post(self.url, {

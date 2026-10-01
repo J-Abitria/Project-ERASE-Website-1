@@ -8,6 +8,7 @@ from students.views import StudentDatabaseView
 from workshops.views import ShipmentMapView
 from reports.views import (
     ReportsDashboardView,
+    ReportsPdfView,
     DeleteFundingView,
     DeleteWorkshopAttendanceView,
     DeleteStudentSupportView,
@@ -27,7 +28,6 @@ urlpatterns = [
     # Core & Authentication
     path('', views.HomeView.as_view(), name='home'),
     path('about/', views.AboutView.as_view(), name='about'),
-    path('contact/', views.ContactView.as_view(), name='contact'),
     path('login/', views.CustomLoginView.as_view(), name='login'),
     path('logout/', LogoutView.as_view(next_page='pages:home'), name='logout'),
     path('signup/', views.SignUpView.as_view(), name='signup'),
@@ -51,6 +51,7 @@ urlpatterns = [
 
     # Reports & Analytics
     path('reports/', ReportsDashboardView.as_view(), name='reports'),
+    path('reports/export/pdf/', ReportsPdfView.as_view(), name='reports_pdf'),
     path('reports/delete-funding/<int:pk>/', DeleteFundingView.as_view(), name='delete_funding'),
     path('reports/delete-workshop/<int:pk>/', DeleteWorkshopAttendanceView.as_view(), name='delete_workshop'),
     path('reports/delete-student/<int:pk>/', DeleteStudentSupportView.as_view(), name='delete_student'),
