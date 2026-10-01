@@ -18,11 +18,17 @@ Django - Website framework to streamline building the application, with useful f
 
 ### Installation Steps
 
-1. Install Python for your machine (currently download Python 3.12): https://www.python.org/downloads/
-2. Navigate to the mysite directory
-3. Open a terminal and run python manage.py runserver
+1. Install Python for your Windows machine (currently download Python 3.12): https://www.python.org/downloads/.
+2. Verify Python and pip installed with `python --version` and `pip --version`.
+3. Navigate to the `code/ERASEwebsite` directory in the repository.
+4. Enter the virtual environment by running `.venv\Scripts\Activate.ps1`.
+5. Download the dependencies for the website from requirements.txt with `pip install -r requirements.txt`.
+6. Verify packages by running `pip list`
+7. Verify that all migrations are present in the repository by running `python manage.py makemigrations`. BE SURE THESE MIGRATION FILES ARE TRACKED.
+8. Setup the migrations by running `python manage.py migrate`. 
+9. To start the website in your local environment, run `python manage.py runserver`. To run test cases in the repository, run `python manage.py test`.
 
-### Production database
+### Production vs. Local Environment
 
 The students, workshops, reports, and event calendar Django apps share one
 database. Locally, the project uses `db.sqlite3`; in production, it uses the
@@ -65,9 +71,10 @@ No known issues.
 
 ## Additional Documentation
 
-TODO: Provide links to additional documentation that may exist in the repo, e.g.,
-  * Sprint reports
-  * User links
+* [Sprint 1 Report](./Sprint1/Sprint_Report/Sprint1_Report.md)
+* [Sprint 2 Report](./Sprint2/Sprint_Report/Sprint_Report2.md)
+* [Sprint 3 Report](./Sprint3/Sprint_Report/Sprint_Report3.md)
+* [Sprint 4 Report](./Sprint4/Sprint_Report/Sprint4_Report.md)
 
 ## License
 

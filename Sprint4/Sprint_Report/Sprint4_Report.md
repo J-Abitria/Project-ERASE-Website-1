@@ -22,6 +22,7 @@ sprint, for quality:
 * [sync_social_media.py](https://github.com/J-Abitria/Project-ERASE-Website-1/blob/main/code/ERASEwebsite/reports/management/commands/sync_social_media.py)
 * [Reports views.py](https://github.com/J-Abitria/Project-ERASE-Website-1/blob/main/code/ERASEwebsite/reports/views.py)
 * [site_guide.js](https://github.com/J-Abitria/Project-ERASE-Website-1/blob/main/code/ERASEwebsite/pages/static/pages/javascript/site_guide.js)
+* [ci.yml](https://github.com/J-Abitria/Project-ERASE-Website-1/blob/main/.github/workflows/ci.yml)
 ## Retrospective Summary
 Here's what went well:
 * Features were completed in time and adds more depth to the application
