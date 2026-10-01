@@ -9,6 +9,7 @@ class SiteGuideTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'id="site-guide-catalog"')
         self.assertContains(response, 'data-title-en="Events Calendar"')
+        self.assertContains(response, 'href="mailto:theprojecterase@gmail.com" data-title-en="Contact"')
         self.assertContains(response, 'data-title-en="Sign In"')
         self.assertNotContains(response, 'data-title-en="Reports"')
         self.assertNotContains(response, 'data-title-en="Manage Users"')
