@@ -601,3 +601,237 @@ msgid "Create Shipment"
 msgstr "Crear envío"
 msgid "Save Workshop Pin"
 msgstr "Guardar marcador de taller"
+
+# Impact map
+msgid "Impact Map"
+msgstr "Mapa de impacto"
+
+msgid "Project ERASE in the community"
+msgstr "Project ERASE en la comunidad"
+
+msgid "Explore our impact map"
+msgstr "Explore nuestro mapa de impacto"
+
+msgid "Find workshop locations and learn about the communities Project ERASE supports."
+msgstr "Encuentre los talleres y conozca las comunidades que apoya Project ERASE."
+
+msgid "Add workshop location"
+msgstr "Agregar lugar del taller"
+
+msgid "Workshop map"
+msgstr "Mapa de talleres"
+
+msgid "Select a marker or a location card to see details."
+msgstr "Seleccione un marcador o una tarjeta para ver los detalles."
+
+msgid "Show all locations"
+msgstr "Mostrar todos los lugares"
+
+msgid "Map of workshop locations"
+msgstr "Mapa de los lugares de talleres"
+
+msgid "Map data"
+msgstr "Datos del mapa"
+
+msgid "Report a map issue"
+msgstr "Informar sobre un problema del mapa"
+
+msgid "Locations"
+msgstr "Lugares"
+
+msgid "%(count)s workshop"
+msgid_plural "%(count)s workshops"
+msgstr[0] "%(count)s taller"
+msgstr[1] "%(count)s talleres"
+
+msgid "Search workshops"
+msgstr "Buscar talleres"
+
+msgid "Title, city, or description"
+msgstr "Título, ciudad o descripción"
+
+msgid "When"
+msgstr "Cuándo"
+
+msgid "Any date"
+msgstr "Cualquier fecha"
+
+msgid "Upcoming"
+msgstr "Próximos"
+
+msgid "Clear filters"
+msgstr "Borrar filtros"
+
+msgid "View on map"
+msgstr "Ver en el mapa"
+
+msgid "Edit"
+msgstr "Editar"
+
+msgid "No locations published yet"
+msgstr "Aún no hay lugares publicados"
+
+msgid "Workshop locations will appear here when the team adds them."
+msgstr "Los talleres aparecerán aquí cuando el equipo los agregue."
+
+msgid "No matching locations"
+msgstr "No hay lugares que coincidan"
+
+msgid "Try another search or clear the filters."
+msgstr "Pruebe otra búsqueda o borre los filtros."
+
+msgid "Edit workshop location"
+msgstr "Editar lugar del taller"
+
+msgid "Close form"
+msgstr "Cerrar formulario"
+
+msgid "Title"
+msgstr "Título"
+
+msgid "City or community"
+msgstr "Ciudad o comunidad"
+
+msgid "Public description"
+msgstr "Descripción pública"
+
+msgid "Latitude"
+msgstr "Latitud"
+
+msgid "Longitude"
+msgstr "Longitud"
+
+msgid "Enter coordinates or choose a point on the map. Share only approved public location details."
+msgstr "Ingrese coordenadas o elija un punto en el mapa. Comparta solo detalles públicos aprobados."
+
+msgid "Choose point on map"
+msgstr "Elegir punto en el mapa"
+
+msgid "Save location"
+msgstr "Guardar lugar"
+
+msgid "Enter a latitude between -90 and 90."
+msgstr "Ingrese una latitud entre -90 y 90."
+
+msgid "Enter a longitude between -180 and 180."
+msgstr "Ingrese una longitud entre -180 y 180."
+
+msgid "Workshop location deleted."
+msgstr "Se eliminó el lugar del taller."
+
+msgid "Workshop location saved."
+msgstr "Se guardó el lugar del taller."
+
+msgid "Explore workshop locations and staff-reported supply journeys supporting communities in Guatemala."
+msgstr "Explore los talleres y trayectos de suministros informados por el equipo que apoyan a comunidades en Guatemala."
+
+msgid "Supply journeys"
+msgstr "Trayectos de suministros"
+
+msgid "Routes connect reported endpoints for illustration. Status is updated by the team; this is not live package tracking."
+msgstr "Las rutas unen los extremos informados con fines ilustrativos. El equipo actualiza el estado; esto no es seguimiento en tiempo real."
+
+msgid "Add supply journey"
+msgstr "Agregar trayecto de suministros"
+
+msgid "Draft"
+msgstr "Borrador"
+
+msgid "Status as of"
+msgstr "Estado al"
+
+msgid "Community impact:"
+msgstr "Impacto comunitario:"
+
+msgid "Partner:"
+msgstr "Colaborador:"
+
+msgid "View route on map"
+msgstr "Ver ruta en el mapa"
+
+msgid "No supply journeys have been published yet."
+msgstr "Aún no se han publicado trayectos de suministros."
+
+msgid "Community map"
+msgstr "Mapa comunitario"
+
+msgid "Illustrative supply route"
+msgstr "Ruta ilustrativa de suministros"
+
+msgid "Select a workshop marker, supply destination, or card to see details."
+msgstr "Seleccione un marcador de taller, un destino de suministros o una tarjeta para ver los detalles."
+
+msgid "Map of workshop locations and supply journeys"
+msgstr "Mapa de talleres y trayectos de suministros"
+
+msgid "Edit supply journey"
+msgstr "Editar trayecto de suministros"
+
+msgid "Publish only verified, approved public information. A route is an illustration between endpoints, not a live position."
+msgstr "Publique solo información pública verificada y aprobada. Una ruta ilustra los extremos, no una posición en tiempo real."
+
+msgid "Journey title"
+msgstr "Título del trayecto"
+
+msgid "Origin name"
+msgstr "Nombre del origen"
+
+msgid "Origin latitude"
+msgstr "Latitud del origen"
+
+msgid "Origin longitude"
+msgstr "Longitud del origen"
+
+msgid "Destination name"
+msgstr "Nombre del destino"
+
+msgid "Destination latitude"
+msgstr "Latitud del destino"
+
+msgid "Destination longitude"
+msgstr "Longitud del destino"
+
+msgid "Supplies being sent"
+msgstr "Suministros enviados"
+
+msgid "Public impact summary"
+msgstr "Resumen público del impacto"
+
+msgid "Partner organization (optional)"
+msgstr "Organización colaboradora (opcional)"
+
+msgid "Reported status"
+msgstr "Estado informado"
+
+msgid "Status date"
+msgstr "Fecha del estado"
+
+msgid "Publish this journey"
+msgstr "Publicar este trayecto"
+
+msgid "Save journey"
+msgstr "Guardar trayecto"
+
+msgid "Planned"
+msgstr "Planificado"
+
+msgid "In transit"
+msgstr "En tránsito"
+
+msgid "Supply journey saved."
+msgstr "Se guardó el trayecto de suministros."
+
+msgid "Supply journey deleted."
+msgstr "Se eliminó el trayecto de suministros."
+
+msgid "Enter a %(label)s between %(minimum)s and %(maximum)s."
+msgstr "Ingrese una %(label)s entre %(minimum)s y %(maximum)s."
+
+msgid "latitude"
+msgstr "latitud"
+
+msgid "longitude"
+msgstr "longitud"
+
+msgid "Choose a destination different from the origin."
+msgstr "Elija un destino diferente del origen."

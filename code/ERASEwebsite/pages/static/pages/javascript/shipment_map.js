@@ -1,491 +1,399 @@
-var originCoord = [46.7298, -117.1817];
-var destinationCoord = [14.6349, -90.5069];
-var totalTransitSeconds = 0;
-var startTime = null;
-var animationInterval = null;
-var routePoints = [];
-var completedRoute = null;
-var remainingRoute = null;
-var shipmentMarker = null;
-var mapI18n = document.getElementById('shipment-map-i18n').dataset;
+(function () {
+  'use strict';
 
-function haversineDistance(lat1, lon1, lat2, lon2) {
-  var R = 3958.8;
-  var dLat = (lat2 - lat1) * Math.PI / 180;
-  var dLon = (lon2 - lon1) * Math.PI / 180;
-  var a = Math.sin(dLat / 2) * Math.sin(dLat / 2) + Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.sin(dLon / 2) * Math.sin(dLon / 2);
-  var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-  return R * c;
-}
+  const configElement = document.getElementById('map-config');
+  const page = document.querySelector('.map-page');
+  if (!configElement || !page) return;
 
-function createArc(start, end, segments = 120) {
-  var latlngs = [];
-  for (var i = 0; i <= segments; i++) {
-    var t = i / segments;
-    var lat = start[0] + (end[0] - start[0]) * t;
-    var lng = start[1] + (end[1] - start[1]) * t;
-    var offset = Math.sin(Math.PI * t) * 5;
-    latlngs.push([lat + offset, lng]);
-  }
-  return latlngs;
-}
-
-function resetMapRoute() {
-  routePoints = createArc(originCoord, destinationCoord);
-  if (completedRoute) {
-    completedRoute.setLatLngs([]);
-  } else {
-    completedRoute = L.polyline([], { color: 'green', weight: 4 }).addTo(map);
-  }
-  if (remainingRoute) {
-    remainingRoute.setLatLngs(routePoints);
-  } else {
-    remainingRoute = L.polyline(routePoints, { color: 'blue', weight: 4 }).addTo(map);
-  }
-  if (shipmentMarker) {
-    shipmentMarker.setLatLng(originCoord);
-  } else {
-    shipmentMarker = L.circleMarker(originCoord, { radius: 12, color: 'black', fillColor: 'red', fillOpacity: 1, weight: 2 }).addTo(map);
-    shipmentMarker.bindPopup(mapI18n.shipment + ' ERASE 001');
-  }
-}
-
-var map = L.map('map').setView([35, -105], 4);
-L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png', {
-  attribution: '&copy; OpenStreetMap contributors &copy; CARTO',
-  maxZoom: 18,
-  subdomains: ['a', 'b', 'c', 'd']
-}).addTo(map);
-resetMapRoute();
-L.marker(originCoord).addTo(map).bindPopup(mapI18n.origin + ': Pullman, WA');
-L.marker(destinationCoord).addTo(map).bindPopup(mapI18n.destination + ': Guatemala');
-
-var totalDistance = haversineDistance(originCoord[0], originCoord[1], destinationCoord[0], destinationCoord[1]);
-document.getElementById('remaining').innerText = totalDistance.toFixed(2) + ' ' + mapI18n.miles;
-
-function updateShipmentPosition() {
-  if (!startTime || totalTransitSeconds <= 0) return;
-  var elapsedSeconds = (Date.now() - startTime) / 1000;
-  var progress = elapsedSeconds / totalTransitSeconds;
-  if (progress > 1) progress = 1;
-  var index = Math.floor(progress * (routePoints.length - 1));
-  if (index < 0) index = 0;
-  var position = routePoints[index];
-  shipmentMarker.setLatLng(position);
-  completedRoute.setLatLngs(routePoints.slice(0, index + 1));
-  remainingRoute.setLatLngs(routePoints.slice(index));
-  document.getElementById('timer').innerText = elapsedSeconds.toFixed(1) + ' ' + mapI18n.seconds;
-  var traveled = totalDistance * progress;
-  var remaining = totalDistance - traveled;
-  document.getElementById('remaining').innerText = remaining.toFixed(2) + ' ' + mapI18n.miles;
-  document.getElementById('progress').innerText = (progress * 100).toFixed(1) + '%';
-  document.getElementById('distance').innerText = traveled.toFixed(2) + ' ' + mapI18n.miles;
-  shipmentMarker.bindPopup(mapI18n.shipment + ' ERASE-001<br>' + (progress * 100).toFixed(1) + '%');
-  if (progress >= 1) {
-    clearInterval(animationInterval);
-    animationInterval = null;
-    document.getElementById('status').innerText = mapI18n.delivered;
-  }
-}
-
-function startShipment() {
-  if (totalTransitSeconds <= 0) return;
-  if (animationInterval) clearInterval(animationInterval);
-  startTime = Date.now();
-  document.getElementById('status').innerText = mapI18n.inTransit;
-  var etaTime = new Date(Date.now() + totalTransitSeconds * 1000);
-  document.getElementById('eta').innerText = etaTime.toLocaleTimeString();
-  animationInterval = setInterval(updateShipmentPosition, 100);
-}
-
-function pauseShipment() {
-  if (animationInterval) {
-    clearInterval(animationInterval);
-    animationInterval = null;
-  }
-  document.getElementById('status').innerText = mapI18n.paused;
-}
-
-function resetShipment() {
-  if (animationInterval) {
-    clearInterval(animationInterval);
-    animationInterval = null;
-  }
-  startTime = null;
-  resetMapRoute();
-  totalDistance = haversineDistance(originCoord[0], originCoord[1], destinationCoord[0], destinationCoord[1]);
-  document.getElementById('timer').innerText = '0 ' + mapI18n.seconds;
-  document.getElementById('distance').innerText = '0 ' + mapI18n.miles;
-  document.getElementById('remaining').innerText = totalDistance.toFixed(2) + ' ' + mapI18n.miles;
-  document.getElementById('progress').innerText = '0%';
-  document.getElementById('status').innerText = mapI18n.waiting;
-  document.getElementById('eta').innerText = '--';
-}
-
-var addShipmentBtn = document.getElementById('addShipmentBtn');
-var startShipmentBtn = document.getElementById('startShipmentBtn');
-var pauseShipmentBtn = document.getElementById('pauseShipmentBtn');
-var resetShipmentBtn = document.getElementById('resetShipmentBtn');
-var shipmentModal = document.getElementById('shipmentModal');
-var closeShipmentModal = document.getElementById('closeShipmentModal');
-function geocodeCity(city, callback) {
-  fetch('https://nominatim.openstreetmap.org/search?format=json&q=' + encodeURIComponent(city))
-    .then(response => response.json())
-    .then(data => {
-      if (data && data.length > 0) {
-        var lat = parseFloat(data[0].lat);
-        var lng = parseFloat(data[0].lon);
-        callback([lat, lng]);
-      } else {
-        callback(null);
-      }
-    })
-    .catch(error => {
-      console.error('Geocoding error:', error);
-      callback(null);
-    });
-}
-
-var shipmentForm = document.getElementById('shipmentForm');
-var originLatInput = document.getElementById('originLat');
-var originLngInput = document.getElementById('originLng');
-var destLatInput = document.getElementById('destLat');
-var destLngInput = document.getElementById('destLng');
-var transitDaysInput = document.getElementById('transitDays');
-var transitHoursInput = document.getElementById('transitHours');
-var transitMinutesInput = document.getElementById('transitMinutes');
-var transitSecondsInput = document.getElementById('transitSeconds');
-
-addShipmentBtn.addEventListener('click', function () {
-  shipmentModal.style.display = 'block';
-});
-closeShipmentModal.addEventListener('click', function () {
-  shipmentModal.style.display = 'none';
-});
-startShipmentBtn.addEventListener('click', startShipment);
-pauseShipmentBtn.addEventListener('click', pauseShipment);
-resetShipmentBtn.addEventListener('click', resetShipment);
-
-shipmentForm.addEventListener('submit', function (event) {
-  event.preventDefault();
-  var originCity = document.getElementById('originCity').value;
-  var destCity = document.getElementById('destCity').value;
-  var days = Number(document.getElementById('transitDays').value);
-  var hours = Number(document.getElementById('transitHours').value);
-  var minutes = Number(document.getElementById('transitMinutes').value);
-  var seconds = Number(document.getElementById('transitSeconds').value);
-  totalTransitSeconds = days * 86400 + hours * 3600 + minutes * 60 + seconds;
-  if (totalTransitSeconds <= 0) {
-    return;
-  }
-
-  // Geocode origin city
-  geocodeCity(originCity, function(originLatLng) {
-    if (!originLatLng) {
-      alert(mapI18n.originError + ' ' + originCity);
-      return;
+  const config = JSON.parse(configElement.textContent);
+  const locations = Array.isArray(config.locations) ? config.locations : [];
+  const language = page.lang.toLowerCase().startsWith('es') ? 'es' : 'en';
+  const copy = {
+    en: {
+      showing: (count, total) => `Showing ${count} of ${total} workshop${total === 1 ? '' : 's'}`,
+      mapUnavailable: 'The map could not load. You can still browse workshop locations below.',
+      tilesUnavailable: 'The map background is unavailable right now. The location list is still available.',
+      invalidCoordinates: 'Some locations have invalid coordinates and cannot appear as map markers.',
+      choosePoint: 'Click the map to choose a workshop location.',
+      addTitle: 'Add workshop location', editTitle: 'Edit workshop location',
+      deleteConfirm: 'Delete this workshop location? This cannot be undone.',
+      addJourney: 'Add supply journey', editJourney: 'Edit supply journey',
+      deleteJourney: 'Delete this supply journey? This cannot be undone.'
+    },
+    es: {
+      showing: (count, total) => `Mostrando ${count} de ${total} taller${total === 1 ? '' : 'es'}`,
+      mapUnavailable: 'No se pudo cargar el mapa. Aún puede consultar la lista de talleres.',
+      tilesUnavailable: 'El fondo del mapa no está disponible ahora. Puede consultar la lista de lugares.',
+      invalidCoordinates: 'Algunos lugares tienen coordenadas incorrectas y no aparecen en el mapa.',
+      choosePoint: 'Haga clic en el mapa para elegir el lugar del taller.',
+      addTitle: 'Agregar lugar del taller', editTitle: 'Editar lugar del taller',
+      deleteConfirm: '¿Eliminar este lugar del taller? Esta acción no se puede deshacer.',
+      addJourney: 'Agregar trayecto de suministros', editJourney: 'Editar trayecto de suministros',
+      deleteJourney: '¿Eliminar este trayecto de suministros? Esta acción no se puede deshacer.'
     }
-    // Geocode destination city
-    geocodeCity(destCity, function(destLatLng) {
-      if (!destLatLng) {
-        alert(mapI18n.destinationError + ' ' + destCity);
-        return;
-      }
-      originCoord = [originLatLng[0], originLatLng[1]];
-      destinationCoord = [destLatLng[0], destLatLng[1]];
-      resetShipment();
-      shipmentModal.style.display = 'none';
-    });
-  });
-});
+  }[language];
 
-var workshopMarkers = (window.workshopMarkersData && Array.isArray(window.workshopMarkersData))
-    ? window.workshopMarkersData
-    : (window.workshopMarkersData || []);
-var workshopMarkerLayers = [];
-var todayIso = new Date().toLocaleDateString('en-CA');
-
-function getWorkshopStatus(location) {
-  if (!location.date) return 'unknown';
-  if (location.date === todayIso) return 'today';
-  return location.date > todayIso ? 'future' : 'past';
-}
-
-function getWorkshopStatusLabel(status) {
-  return mapI18n[status] || status;
-}
-
-function getLocationText(location) {
-  return [
-    location.title,
-    location.city,
-    location.address,
-    location.description
-  ].filter(Boolean).join(' ').toLowerCase();
-}
-
-function renderCityOptions(locations) {
-  var cityFilter = document.getElementById('cityFilter');
-  var selectedCity = cityFilter.value;
-  var cities = [];
-  locations.forEach(function (location) {
-    if (location.city && cities.indexOf(location.city) === -1) {
-      cities.push(location.city);
-    }
-  });
-  cities.sort(function (a, b) { return a.localeCompare(b); });
-  cityFilter.innerHTML = '<option value="">' + mapI18n.allCities + '</option>';
-  cities.forEach(function (city) {
-    var option = document.createElement('option');
-    option.value = city;
-    option.textContent = city;
-    cityFilter.appendChild(option);
-  });
-  cityFilter.value = cities.indexOf(selectedCity) === -1 ? '' : selectedCity;
-}
-
-function filterWorkshops() {
-  var searchValue = document.getElementById('workshopSearch').value.trim().toLowerCase();
-  var cityValue = document.getElementById('cityFilter').value;
-  var statusValue = document.getElementById('statusFilter').value;
-  var startDate = document.getElementById('startDateFilter').value;
-  var endDate = document.getElementById('endDateFilter').value;
-  var futureOnly = document.getElementById('futureOnlyFilter').checked;
-
-  return workshopMarkers.filter(function (location) {
-    var status = getWorkshopStatus(location);
-    if (searchValue && getLocationText(location).indexOf(searchValue) === -1) return false;
-    if (cityValue && location.city !== cityValue) return false;
-    if (statusValue && status !== statusValue) return false;
-    if (futureOnly && status !== 'future' && status !== 'today') return false;
-    if (startDate && location.date < startDate) return false;
-    if (endDate && location.date > endDate) return false;
-    return true;
-  });
-}
-
-function renderWorkshopMarkers(locations) {
-  workshopMarkerLayers.forEach(function (marker) {
-    map.removeLayer(marker);
-  });
-  workshopMarkerLayers = [];
-  locations.forEach(function (location) {
-    var marker = L.marker([location.latitude, location.longitude]).addTo(map);
-    marker.bindPopup(buildPopup(location));
-    workshopMarkerLayers.push(marker);
-  });
-}
-
-function updateFilterSummary(filteredLocations) {
-  var summary = document.getElementById('filterSummary');
-  var count = filteredLocations.length;
-  var total = workshopMarkers.length;
-  summary.textContent = mapI18n.showing + ' ' + count + ' ' + mapI18n.of + ' ' + total + ' ' + (total === 1 ? mapI18n.workshopSingular : mapI18n.workshopPlural) + '.';
-}
-
-function updateWorkshopFilters() {
-  var filteredLocations = filterWorkshops();
-  renderWorkshopMarkers(filteredLocations);
-  buildEventList(filteredLocations);
-  updateFilterSummary(filteredLocations);
-}
-
-function clearWorkshopFilters() {
-  document.getElementById('workshopSearch').value = '';
-  document.getElementById('cityFilter').value = '';
-  document.getElementById('statusFilter').value = '';
-  document.getElementById('startDateFilter').value = '';
-  document.getElementById('endDateFilter').value = '';
-  document.getElementById('futureOnlyFilter').checked = false;
-  updateWorkshopFilters();
-}
-
-function buildPopup(location) {
-  var html = '<strong>' + location.title + '</strong><br>';
-  if (location.date) { html += '<em>' + location.date + '</em><br>'; }
-  if (location.city) { html += location.city + '<br>'; }
-  else if (location.address) { html += location.address + '<br>'; }
-  if (location.description) { html += '<div style="margin-top:8px;">' + location.description + '</div>'; }
-  if (location.photos && location.photos.length) {
-    html += '<div style="margin-top:10px;">';
-    location.photos.forEach(function (url) {
-      html += '<img src="' + url + '" alt="' + location.title + '" style="width:100px; display:block; margin-top:8px;"/>';
-    });
-    html += '</div>';
+  function normalized(value) {
+    return String(value || '').toLocaleLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
   }
-  return html;
-}
 
-function buildEventList(locations) {
-  var container = document.getElementById('event-list');
-  container.innerHTML = '';
-  if (!locations.length) {
-    var emptyText = workshopMarkers.length ? mapI18n.noFilterMatches : mapI18n.noLocations;
-    container.innerHTML = '<div class="empty-state"><strong>' + emptyText + '</strong></div>';
-    return;
+  function validCoordinates(location) {
+    const lat = location.latitude;
+    const lng = location.longitude;
+    return Number.isFinite(lat) && Number.isFinite(lng) && lat >= -90 && lat <= 90 && lng >= -180 && lng <= 180;
   }
-  locations.forEach(function (location) {
-    var card = document.createElement('article');
-    card.className = 'event-card';
-    var header = document.createElement('div');
-    header.className = 'event-card-header';
-    var title = document.createElement('h3');
+
+  function validJourney(journey) {
+    return validCoordinates({ latitude: journey.origin_latitude, longitude: journey.origin_longitude }) &&
+      validCoordinates({ latitude: journey.destination_latitude, longitude: journey.destination_longitude });
+  }
+
+  function workshopDate(value) {
+    const date = new Date(`${value}T12:00:00`);
+    return Number.isNaN(date.getTime()) ? value : new Intl.DateTimeFormat(language, { dateStyle: 'medium' }).format(date);
+  }
+
+  const byId = new Map(locations.map(location => [Number(location.id), location]));
+  const journeys = Array.isArray(config.journeys) ? config.journeys : [];
+  const journeysById = new Map(journeys.map(journey => [Number(journey.id), journey]));
+  const cards = [...document.querySelectorAll('.workshop-card')];
+  const search = document.getElementById('workshop-search');
+  const city = document.getElementById('city-filter');
+  const when = document.getElementById('date-filter');
+  const summary = document.getElementById('filter-summary');
+  const notice = document.getElementById('map-notice');
+  const noResults = document.getElementById('no-filter-results');
+  const mapElement = document.getElementById('map');
+  const today = new Date();
+  const todayIso = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+
+  let map = null;
+  const markers = new Map();
+  const journeyMarkers = new Map();
+  let pickingPoint = false;
+  let tileWarningShown = false;
+  let persistentNotice = '';
+
+  function showNotice(message, persistent = true) {
+    if (persistent) persistentNotice = message;
+    notice.textContent = message;
+    notice.hidden = false;
+  }
+
+  function restoreNotice() {
+    notice.textContent = persistentNotice;
+    notice.hidden = !persistentNotice;
+  }
+
+  function makePopup(location) {
+    const content = document.createElement('div');
+    const title = document.createElement('strong');
     title.textContent = location.title;
-    header.appendChild(title);
-    var deleteBtn = document.createElement('button');
-    deleteBtn.className = 'delete-btn';
-    deleteBtn.innerHTML = '&times;';
-    deleteBtn.onclick = function() { 
-      console.log('Delete button clicked for workshop ID:', location.id);
-      deleteWorkshop(location.id); 
-    };
-    header.appendChild(deleteBtn);
-    card.appendChild(header);
-    if (location.date) {
-      var date = document.createElement('p');
-      date.innerHTML = '<strong>' + mapI18n.date + '</strong> ' + location.date;
-      card.appendChild(date);
-    }
-    var status = document.createElement('p');
-    status.innerHTML = '<strong>' + mapI18n.status + '</strong> ' + getWorkshopStatusLabel(getWorkshopStatus(location));
-    card.appendChild(status);
-    if (location.city) {
-      var city = document.createElement('p');
-      city.innerHTML = '<strong>' + mapI18n.city + '</strong> ' + location.city;
-      card.appendChild(city);
-    }
-    if (location.address && location.address !== location.city) {
-      var address = document.createElement('p');
-      address.innerHTML = '<strong>' + mapI18n.location + '</strong> ' + location.address;
-      card.appendChild(address);
-    }
+    content.appendChild(title);
+    const details = document.createElement('p');
+    details.textContent = [location.city, workshopDate(location.date)].filter(Boolean).join(' · ');
+    content.appendChild(details);
     if (location.description) {
-      var description = document.createElement('p');
+      const description = document.createElement('p');
       description.textContent = location.description;
-      card.appendChild(description);
+      content.appendChild(description);
     }
-    if (location.photos) {
-      location.photos.forEach(function (photoUrl) {
-        var image = document.createElement('img');
-        image.src = photoUrl;
-        image.alt = location.title;
-        card.appendChild(image);
+    if (location.photo_url) {
+      const photo = document.createElement('img');
+      photo.src = location.photo_url;
+      photo.alt = '';
+      photo.loading = 'lazy';
+      photo.style.cssText = 'display:block;max-width:220px;max-height:150px;object-fit:cover;margin-top:8px;border-radius:6px';
+      content.appendChild(photo);
+    }
+    return content;
+  }
+
+  function fitLocations(visible) {
+    if (!map) return;
+    const points = visible.filter(validCoordinates).map(location => [Number(location.longitude), Number(location.latitude)]);
+    if (points.length > 1) {
+      const bounds = points.reduce((acc, point) => acc.extend(point), new maplibregl.LngLatBounds(points[0], points[0]));
+      map.fitBounds(bounds, { padding: 35, maxZoom: 11 });
+    } else if (points.length === 1) {
+      map.flyTo({ center: points[0], zoom: 10 });
+    } else {
+      map.flyTo({ center: [-90.6, 15.2], zoom: 6 });
+    }
+  }
+
+  function fitAll() {
+    if (!map) return;
+    const points = locations.filter(validCoordinates).map(location => [Number(location.longitude), Number(location.latitude)]);
+    journeys.filter(validJourney).forEach(journey => {
+      points.push([Number(journey.origin_longitude), Number(journey.origin_latitude)]);
+      points.push([Number(journey.destination_longitude), Number(journey.destination_latitude)]);
+    });
+    if (points.length > 1) {
+      const bounds = points.reduce((acc, point) => acc.extend(point), new maplibregl.LngLatBounds(points[0], points[0]));
+      map.fitBounds(bounds, { padding: 45, maxZoom: 9 });
+    } else if (points.length === 1) {
+      map.flyTo({ center: points[0], zoom: 10 });
+    }
+  }
+
+  // This curve illustrates the reported endpoints; it is never a measured travel path.
+  function routeArc(journey) {
+    const start = [Number(journey.origin_longitude), Number(journey.origin_latitude)];
+    const end = [Number(journey.destination_longitude), Number(journey.destination_latitude)];
+    const dx = end[0] - start[0];
+    const dy = end[1] - start[1];
+    const bend = 0.13;
+    const control = [(start[0] + end[0]) / 2 - dy * bend, (start[1] + end[1]) / 2 + dx * bend];
+    return Array.from({ length: 33 }, (_, index) => {
+      const t = index / 32;
+      const u = 1 - t;
+      return [u * u * start[0] + 2 * u * t * control[0] + t * t * end[0],
+        Math.max(-89, Math.min(89, u * u * start[1] + 2 * u * t * control[1] + t * t * end[1]))];
+    });
+  }
+
+  function makeJourneyPopup(journey) {
+    const content = document.createElement('div');
+    const title = document.createElement('strong');
+    title.textContent = journey.title;
+    content.appendChild(title);
+    [
+      `${journey.origin_name} → ${journey.destination_name}`,
+      `${journey.status_label} · ${workshopDate(journey.status_date)}`,
+      journey.contents_summary,
+      journey.impact_summary,
+      journey.partner_name
+    ].filter(Boolean).forEach(value => {
+      const paragraph = document.createElement('p');
+      paragraph.textContent = value;
+      content.appendChild(paragraph);
+    });
+    return content;
+  }
+
+  function filteredLocations() {
+    const query = normalized(search.value.trim());
+    const selectedCity = city.value;
+    const selectedWhen = when.value;
+    return locations.filter(location => {
+      const text = normalized([location.title, location.city, location.description].join(' '));
+      if (query && !text.includes(query)) return false;
+      if (selectedCity && location.city !== selectedCity) return false;
+      if (selectedWhen === 'upcoming' && location.date < todayIso) return false;
+      if (selectedWhen === 'past' && location.date >= todayIso) return false;
+      return true;
+    });
+  }
+
+  function updateFilters() {
+    const visible = filteredLocations();
+    const ids = new Set(visible.map(location => Number(location.id)));
+    cards.forEach(card => { card.hidden = !ids.has(Number(card.dataset.workshopId)); });
+    noResults.hidden = !locations.length || visible.length !== 0;
+    summary.textContent = copy.showing(visible.length, locations.length);
+    markers.forEach((marker, id) => {
+      if (ids.has(id)) marker.addTo(map);
+      else marker.remove();
+    });
+    fitLocations(visible);
+  }
+
+  if (typeof maplibregl !== 'undefined') {
+    try {
+      map = new maplibregl.Map({
+        container: mapElement,
+        style: config.style_url,
+        center: [-90.6, 15.2],
+        zoom: 6,
+        maxZoom: 19,
+        attributionControl: true
+      });
+    } catch (error) {
+      showNotice(copy.mapUnavailable);
+    }
+  }
+  if (map) {
+    map.scrollZoom.disable();
+    map.addControl(new maplibregl.NavigationControl({ showCompass: false }), 'top-left');
+    map.on('error', () => {
+      if (!tileWarningShown) {
+        showNotice(copy.tilesUnavailable);
+        tileWarningShown = true;
+      }
+    });
+    map.on('load', () => {
+      map.addSource('supply-journeys', {
+        type: 'geojson',
+        data: {
+          type: 'FeatureCollection',
+          features: journeys.filter(validJourney).map(journey => ({
+            type: 'Feature',
+            geometry: { type: 'LineString', coordinates: routeArc(journey) },
+            properties: { id: journey.id }
+          }))
+        }
+      });
+      map.addLayer({
+        id: 'supply-journeys', type: 'line', source: 'supply-journeys',
+        paint: { 'line-color': '#d17621', 'line-width': 3, 'line-opacity': 0.85, 'line-dasharray': [2, 2] }
+      });
+    });
+    locations.filter(validCoordinates).forEach(location => {
+      const popup = new maplibregl.Popup({ maxWidth: '260px' }).setDOMContent(makePopup(location));
+      const marker = new maplibregl.Marker()
+        .setLngLat([Number(location.longitude), Number(location.latitude)])
+        .setPopup(popup);
+      marker.getElement().setAttribute('aria-label', [location.title, location.city].filter(Boolean).join(', '));
+      markers.set(Number(location.id), marker);
+    });
+    journeys.filter(validJourney).forEach(journey => {
+      const element = document.createElement('button');
+      element.type = 'button';
+      element.className = 'journey-marker';
+      element.textContent = '●';
+      element.setAttribute('aria-label', [journey.title, journey.destination_name].join(', '));
+      const marker = new maplibregl.Marker({ element, anchor: 'bottom' })
+        .setLngLat([Number(journey.destination_longitude), Number(journey.destination_latitude)])
+        .setPopup(new maplibregl.Popup({ maxWidth: '260px' }).setDOMContent(makeJourneyPopup(journey)));
+      marker.addTo(map);
+      journeyMarkers.set(Number(journey.id), marker);
+    });
+    document.querySelectorAll('.focus-shipment').forEach(button => {
+      if (journeyMarkers.has(Number(button.dataset.id))) button.hidden = false;
+    });
+    if (locations.some(location => !validCoordinates(location))) showNotice(copy.invalidCoordinates);
+    document.getElementById('fit-workshops').hidden = false;
+    document.querySelectorAll('.focus-workshop').forEach(button => {
+      if (markers.has(Number(button.dataset.id))) button.hidden = false;
+    });
+  } else if (notice.hidden) {
+    showNotice(copy.mapUnavailable);
+  }
+
+  search.addEventListener('input', updateFilters);
+  city.addEventListener('change', updateFilters);
+  when.addEventListener('change', updateFilters);
+  document.getElementById('clear-filters').addEventListener('click', () => {
+    search.value = '';
+    city.value = '';
+    when.value = '';
+    updateFilters();
+  });
+  document.getElementById('fit-workshops').addEventListener('click', fitAll);
+  document.querySelectorAll('.focus-workshop').forEach(button => {
+    button.addEventListener('click', () => {
+      const marker = markers.get(Number(button.dataset.id));
+      if (!marker || !map) return;
+      const position = marker.getLngLat();
+      map.flyTo({ center: [position.lng, position.lat], zoom: Math.max(map.getZoom(), 10) });
+      if (!marker.getPopup().isOpen()) marker.togglePopup();
+      mapElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    });
+  });
+  updateFilters();
+  if (journeys.length) fitAll();
+
+  document.querySelectorAll('.focus-shipment').forEach(button => {
+    button.addEventListener('click', () => {
+      const journey = journeysById.get(Number(button.dataset.id));
+      const marker = journeyMarkers.get(Number(button.dataset.id));
+      if (!journey || !marker || !map) return;
+      const bounds = new maplibregl.LngLatBounds()
+        .extend([Number(journey.origin_longitude), Number(journey.origin_latitude)])
+        .extend([Number(journey.destination_longitude), Number(journey.destination_latitude)]);
+      map.fitBounds(bounds, { padding: 55, maxZoom: 10 });
+      if (!marker.getPopup().isOpen()) marker.togglePopup();
+      mapElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    });
+  });
+
+  const dialog = document.getElementById('workshop-dialog');
+  if (!dialog) return;
+  const form = document.getElementById('workshop-form');
+  const action = document.getElementById('workshop-action');
+  const workshopId = document.getElementById('workshop-id');
+  const dialogTitle = document.getElementById('workshop-dialog-title');
+  const pickButton = document.getElementById('pick-workshop-point');
+  if (map) pickButton.hidden = false;
+
+  function openEditor(location) {
+    pickingPoint = false;
+    form.reset();
+    action.value = location ? 'update_workshop' : 'create_workshop';
+    workshopId.value = location ? location.id : '';
+    dialogTitle.textContent = location ? copy.editTitle : copy.addTitle;
+    if (location) {
+      ['title', 'city', 'date', 'description', 'latitude', 'longitude'].forEach(name => {
+        form.elements[name].value = location[name] ?? '';
       });
     }
-    container.appendChild(card);
-  });
-}
+    dialog.showModal();
+  }
 
-function deleteWorkshop(workshopId) {
-  console.log('deleteWorkshop called with ID:', workshopId);
-  if (confirm(mapI18n.deleteConfirm)) {
-    console.log('User confirmed deletion');
-    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]');
-    console.log('CSRF token element:', csrfToken);
-    if (!csrfToken) {
-      alert(mapI18n.csrfMissing);
-      return;
+  document.getElementById('add-workshop').addEventListener('click', () => openEditor(null));
+  document.querySelectorAll('.edit-workshop').forEach(button => {
+    button.addEventListener('click', () => openEditor(byId.get(Number(button.dataset.id))));
+  });
+  document.querySelectorAll('.delete-workshop-form').forEach(deleteForm => {
+    deleteForm.addEventListener('submit', event => {
+      if (!window.confirm(copy.deleteConfirm)) event.preventDefault();
+    });
+  });
+  document.getElementById('close-workshop').addEventListener('click', () => dialog.close());
+  document.getElementById('cancel-workshop').addEventListener('click', () => dialog.close());
+  dialog.addEventListener('close', () => {
+    if (!pickingPoint) restoreNotice();
+  });
+  if (map) {
+    pickButton.addEventListener('click', () => {
+      pickingPoint = true;
+      dialog.close();
+      showNotice(copy.choosePoint, false);
+      mapElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      mapElement.focus();
+    });
+    map.on('click', event => {
+      if (!pickingPoint) return;
+      form.elements.latitude.value = event.lngLat.lat.toFixed(6);
+      form.elements.longitude.value = event.lngLat.lng.toFixed(6);
+      pickingPoint = false;
+      restoreNotice();
+      dialog.showModal();
+    });
+  }
+  if (dialog.hasAttribute('data-open-on-load')) dialog.showModal();
+
+  const shipmentDialog = document.getElementById('shipment-dialog');
+  const shipmentForm = document.getElementById('shipment-form');
+  const shipmentAction = document.getElementById('shipment-action');
+  const shipmentId = document.getElementById('shipment-id');
+  const shipmentTitle = document.getElementById('shipment-dialog-title');
+  function openShipmentEditor(journey) {
+    shipmentForm.reset();
+    shipmentAction.value = journey ? 'update_shipment' : 'create_shipment';
+    shipmentId.value = journey ? journey.id : '';
+    shipmentTitle.textContent = journey ? copy.editJourney : copy.addJourney;
+    if (journey) {
+      [
+        'title', 'origin_name', 'origin_latitude', 'origin_longitude',
+        'destination_name', 'destination_latitude', 'destination_longitude',
+        'contents_summary', 'impact_summary', 'partner_name', 'status', 'status_date'
+      ].forEach(name => { shipmentForm.elements[name].value = journey[name] ?? ''; });
+      shipmentForm.elements.is_published.checked = Boolean(journey.is_published);
     }
-    const csrfValue = csrfToken.value;
-    console.log('CSRF token value:', csrfValue);
-    
-    var deleteUrl = (window.urls && window.urls.shipment_map) ? window.urls.shipment_map : '';
-    fetch(deleteUrl, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
-      },
-      body: 'delete_workshop=' + workshopId + '&csrfmiddlewaretoken=' + csrfValue
-    })
-    .then(response => {
-      console.log('Response received:', response);
-      console.log('Response status:', response.status);
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      return response.json();
-    })
-    .then(data => {
-      console.log('Response data:', data);
-      if (data.success) {
-        console.log('Success - reloading page');
-        location.reload();
-      } else {
-        console.log('Error:', data.error);
-          if (data.error === mapI18n.authRequired) {
-          alert(mapI18n.adminDeleteRequired);
-          window.location.href = (window.urls && window.urls.login) ? window.urls.login : window.location.href;
-        } else {
-          alert(mapI18n.deleteError + ' ' + data.error);
-        }
-      }
-    })
-    .catch(error => {
-      console.error('Fetch error:', error);
-      alert(mapI18n.deleteFailed);
-    });
-  } else {
-    console.log('User cancelled deletion');
+    shipmentDialog.showModal();
   }
-}
-
-function updatePinForm(latlng) {
-  document.getElementById('pinLatitude').value = latlng.lat.toFixed(6);
-  document.getElementById('pinLongitude').value = latlng.lng.toFixed(6);
-  document.getElementById('pinCoordinates').innerText = latlng.lat.toFixed(5) + ', ' + latlng.lng.toFixed(5);
-}
-
-function cancelPinPlacement() {
-  if (newPinMarker) {
-    map.removeLayer(newPinMarker);
-    newPinMarker = null;
-  }
-  if (pinHint) { pinHint.innerText = mapI18n.pinPlacementHint; }
-  if (pinModal) { pinModal.style.display = 'none'; }
-}
-
-var newPinMarker = null;
-var addPinButton = document.getElementById('addPinButton');
-var pinHint = document.getElementById('pinHint');
-var pinModal = document.getElementById('pinModal');
-var closePinModal = document.getElementById('closePinModal');
-var cancelPinButton = document.getElementById('cancelPinButton');
-
-if (addPinButton) {
-  addPinButton.addEventListener('click', function () {
-    if (pinHint) { pinHint.innerText = mapI18n.pinPlacementMapHint; }
-    map.once('click', function (e) {
-      var latlng = e.latlng;
-      if (newPinMarker) { map.removeLayer(newPinMarker); }
-      newPinMarker = L.marker(latlng, { draggable: true }).addTo(map);
-      newPinMarker.on('dragend', function (event) { updatePinForm(event.target.getLatLng()); });
-      updatePinForm(latlng);
-      if (pinModal) { pinModal.style.display = 'block'; }
-      map.panTo(latlng);
+  document.getElementById('add-shipment').addEventListener('click', () => openShipmentEditor(null));
+  document.querySelectorAll('.edit-shipment').forEach(button => {
+    button.addEventListener('click', () => openShipmentEditor(journeysById.get(Number(button.dataset.id))));
+  });
+  document.querySelectorAll('.delete-shipment-form').forEach(deleteForm => {
+    deleteForm.addEventListener('submit', event => {
+      if (!window.confirm(copy.deleteJourney)) event.preventDefault();
     });
   });
-}
-
-if (closePinModal) { closePinModal.addEventListener('click', cancelPinPlacement); }
-if (cancelPinButton) { cancelPinButton.addEventListener('click', cancelPinPlacement); }
-window.addEventListener('click', function (event) {
-  if (event.target === shipmentModal) { shipmentModal.style.display = 'none'; }
-  if (event.target === pinModal) { pinModal.style.display = 'none'; }
-});
-
-renderCityOptions(workshopMarkers);
-['workshopSearch', 'cityFilter', 'statusFilter', 'startDateFilter', 'endDateFilter', 'futureOnlyFilter'].forEach(function (id) {
-  var element = document.getElementById(id);
-  var eventName = element.type === 'search' ? 'input' : 'change';
-  element.addEventListener(eventName, updateWorkshopFilters);
-});
-document.getElementById('clearWorkshopFilters').addEventListener('click', clearWorkshopFilters);
-updateWorkshopFilters();
-
-var allPoints = [originCoord, destinationCoord];
-workshopMarkers.forEach(function (loc) { allPoints.push([loc.latitude, loc.longitude]); });
-if (allPoints.length > 2) {
-  map.fitBounds(allPoints);
-} else {
-  map.fitBounds(routePoints);
-}
+  document.getElementById('close-shipment').addEventListener('click', () => shipmentDialog.close());
+  document.getElementById('cancel-shipment').addEventListener('click', () => shipmentDialog.close());
+  if (shipmentDialog.hasAttribute('data-open-on-load')) shipmentDialog.showModal();
+})();

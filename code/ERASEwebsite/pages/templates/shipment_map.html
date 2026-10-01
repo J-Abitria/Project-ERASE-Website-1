@@ -1,212 +1,237 @@
 {% extends "base.html" %}
 {% load i18n static %}
+{% get_current_language as MAP_LANGUAGE %}
 
-{% block title %}{% trans "Shipment Map" %}{% endblock %}
+{% block title %}{% trans "Impact Map" %} - Project ERASE{% endblock %}
 
 {% block extra_styles %}
-<link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
-<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+<link rel="stylesheet" href="https://unpkg.com/maplibre-gl@5.12.0/dist/maplibre-gl.css"
+      integrity="sha256-Ha6JJe5ZBuRC8P1wKN3tKIQ4G5rNengOUnACXgn8fF4=" crossorigin="anonymous">
+<script src="https://unpkg.com/maplibre-gl@5.12.0/dist/maplibre-gl.js"
+        integrity="sha256-BrOS3lccmeJCWBsPPyOJPm6V79NlaXTW7f2PhZnd82I=" crossorigin="anonymous"></script>
 <link rel="stylesheet" href="{% static 'pages/css/shipment_map.css' %}">
 {% endblock %}
 
 {% block content %}
-<div class="container">
-  <div class="header">
-    <h2>{% trans "Project ERASE Interactive Map" %}</h2>
-    <p>{% trans "Track shipments in real-time and view workshop locations managed through the admin interface." %}</p>
-  </div>
-  <div class="controls-section">
-    <div class="control-card">
-      <h3>{% trans "Shipment Controls" %}</h3>
-      <div class="button-group">
-        <button id="addShipmentBtn" class="btn btn-primary">{% trans "Add Shipment" %}</button>
-        <button id="startShipmentBtn" class="btn btn-success">{% trans "Start" %}</button>
-        <button id="pauseShipmentBtn" class="btn btn-secondary">{% trans "Pause" %}</button>
-        <button id="resetShipmentBtn" class="btn btn-danger">{% trans "Reset" %}</button>
-      </div>
+<main class="map-page container" lang="{{ MAP_LANGUAGE }}">
+  <section class="map-intro">
+    <div>
+      <p class="map-eyebrow">{% trans "Project ERASE in the community" %}</p>
+      <h1>{% trans "Explore our impact map" %}</h1>
+      <p>{% trans "Explore workshop locations and staff-reported supply journeys supporting communities in Guatemala." %}</p>
     </div>
-    <div class="control-card">
-      <h3>{% trans "Workshop Pins" %}</h3>
-      <p style="font-size:12px; color:#666;">{% trans "User:" %} {% if user.is_authenticated %}{{ user.username }}{% else %}{% trans "Not logged in" %}{% endif %} ({% trans "Staff:" %} {% if user.is_staff %}{% trans "Yes" %}{% else %}{% trans "No" %}{% endif %})</p>
-      {% if show_add_pin %}
-      <div class="button-group">
-        <button id="addPinButton" class="btn btn-primary">{% trans "Add Workshop Pin" %}</button>
-      </div>
-      <span id="pinHint" style="margin-top:10px;display:block;color:#555;font-size:14px;">{% trans "Click the button, then click the map to place a new pin." %}</span>
-      {% elif user.is_authenticated %}
-      <span style="color:#555;">{% trans "Only admin users can add workshop pins from this page." %}</span>
-      {% else %}
-      <span style="color:#555;">{% trans "Log in as an admin to add workshop pins directly from this page." %}</span>
-      {% endif %}
+    {% if can_manage_map %}
+      <button id="add-workshop" class="map-button map-button-primary" type="button">{% trans "Add workshop location" %}</button>
+    {% endif %}
+  </section>
+
+  {% if messages %}
+    <div class="map-messages" role="status">
+      {% for message in messages %}<p>{{ message }}</p>{% endfor %}
     </div>
-    <div class="control-card">
-      <h3>{% trans "Workshop Filters" %}</h3>
-      <div class="filter-grid">
-        <div class="filter-field">
-          <label for="workshopSearch">{% trans "Search" %}</label>
-          <input id="workshopSearch" type="search" placeholder="{% trans 'Title or location' %}">
-        </div>
-        <div class="filter-field">
-          <label for="cityFilter">{% trans "City" %}</label>
-          <select id="cityFilter">
-            <option value="">{% trans "All cities" %}</option>
-          </select>
-        </div>
-        <div class="filter-field">
-          <label for="statusFilter">{% trans "Status" %}</label>
-          <select id="statusFilter">
-            <option value="">{% trans "All statuses" %}</option>
-            <option value="future">{% trans "Future" %}</option>
-            <option value="today">{% trans "Today" %}</option>
-            <option value="past">{% trans "Past" %}</option>
-          </select>
-        </div>
-        <div class="filter-field">
-          <label for="startDateFilter">{% trans "Start date" %}</label>
-          <input id="startDateFilter" type="date">
-        </div>
-        <div class="filter-field">
-          <label for="endDateFilter">{% trans "End date" %}</label>
-          <input id="endDateFilter" type="date">
-        </div>
-        <div class="filter-actions">
-          <label style="display:flex;align-items:center;gap:8px;color:#34495e;font-size:14px;"><input id="futureOnlyFilter" type="checkbox"> {% trans "Future only" %}</label>
-          <button id="clearWorkshopFilters" class="btn btn-secondary" type="button">{% trans "Clear" %}</button>
-        </div>
+  {% endif %}
+
+  <section class="journeys" aria-labelledby="journeys-heading">
+    <div class="journeys-heading">
+      <div>
+        <h2 id="journeys-heading">{% trans "Supply journeys" %}</h2>
+        <p>{% trans "Routes connect reported endpoints for illustration. Status is updated by the team; this is not live package tracking." %}</p>
       </div>
-      <div id="filterSummary" class="filter-summary">{% trans "Showing all workshops." %}</div>
+      {% if can_manage_map %}<button id="add-shipment" class="map-button map-button-outline" type="button">{% trans "Add supply journey" %}</button>{% endif %}
     </div>
-  </div>
-  <div class="status-display">
-    <strong>{% trans "Status:" %}</strong> <span id="status">{% trans "Waiting" %}</span><br>
-    <strong>{% trans "ETA:" %}</strong> <span id="eta">--</span><br>
-    <strong>{% trans "Elapsed Time:" %}</strong> <span id="timer">0 {% trans "seconds" %}</span><br>
-    <strong>{% trans "Progress:" %}</strong> <span id="progress">0%</span><br>
-    <strong>{% trans "Distance Traveled:" %}</strong> <span id="distance">0 {% trans "miles" %}</span><br>
-    <strong>{% trans "Distance Remaining:" %}</strong> <span id="remaining">0 {% trans "miles" %}</span>
-  </div>
-  <div id="map"></div>
-  <div id="event-list" class="event-list"></div>
-</div>
+    <div class="journey-list">
+      {% for shipment in shipments %}
+        <article class="journey-card">
+          <div class="journey-card-top">
+            <span class="journey-status journey-status-{{ shipment.status }}">{{ shipment.get_status_display }}</span>
+            {% if not shipment.is_published %}<span class="journey-draft">{% trans "Draft" %}</span>{% endif %}
+            <time datetime="{{ shipment.status_date|date:'Y-m-d' }}">{% trans "Status as of" %} {{ shipment.status_date|date:"M j, Y" }}</time>
+          </div>
+          <h3>{{ shipment.title }}</h3>
+          <p class="journey-endpoints">{{ shipment.origin_name }} <span aria-hidden="true">→</span> {{ shipment.destination_name }}</p>
+          <p>{{ shipment.contents_summary }}</p>
+          {% if shipment.impact_summary %}<p><strong>{% trans "Community impact:" %}</strong> {{ shipment.impact_summary }}</p>{% endif %}
+          {% if shipment.partner_name %}<p><strong>{% trans "Partner:" %}</strong> {{ shipment.partner_name }}</p>{% endif %}
+          <div class="workshop-card-actions">
+            <button class="map-text-button focus-shipment" type="button" data-id="{{ shipment.pk }}" hidden>{% trans "View route on map" %}</button>
+            {% if can_manage_map %}
+              <button class="map-text-button edit-shipment" type="button" data-id="{{ shipment.pk }}">{% trans "Edit" %}</button>
+              <form method="post" class="delete-shipment-form">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="delete_shipment">
+                <input type="hidden" name="shipment_id" value="{{ shipment.pk }}">
+                <button class="map-text-button map-text-danger" type="submit">{% trans "Delete" %}</button>
+              </form>
+            {% endif %}
+          </div>
+        </article>
+      {% empty %}
+        <div class="journey-empty">{% trans "No supply journeys have been published yet." %}</div>
+      {% endfor %}
+    </div>
+  </section>
 
-<!-- Hidden CSRF token for AJAX requests -->
-{% csrf_token %}
+  <div class="map-layout">
+    <section class="map-surface" aria-labelledby="map-heading">
+      <div class="map-surface-header">
+        <div>
+          <h2 id="map-heading">{% trans "Community map" %}</h2>
+          <p>{% trans "Select a workshop marker, supply destination, or card to see details." %}</p>
+        </div>
+        <button id="fit-workshops" class="map-button map-button-outline" type="button" hidden>{% trans "Show all locations" %}</button>
+      </div>
+      <div id="map" role="region" tabindex="0" aria-label="{% trans 'Map of workshop locations and supply journeys' %}"></div>
+      <p class="map-legend"><span class="map-legend-workshop" aria-hidden="true"></span>{% trans "Workshop" %}<span class="map-legend-route" aria-hidden="true"></span>{% trans "Illustrative supply route" %}</p>
+      <p id="map-notice" class="map-notice" role="status" hidden></p>
+      <p class="map-source">
+        {% trans "Map data" %}: <a href="https://www.openstreetmap.org/copyright" rel="noopener noreferrer">OpenStreetMap</a>
+        · <a href="https://openfreemap.org/" rel="noopener noreferrer">OpenFreeMap</a>
+        · <a href="https://www.openstreetmap.org/fixthemap" rel="noopener noreferrer">{% trans "Report a map issue" %}</a>
+      </p>
+    </section>
 
-<div id="shipmentModal" class="modal">
-  <div class="modal-content">
-    <span class="close" id="closeShipmentModal">&times;</span>
-    <h3>{% trans "Add New Shipment" %}</h3>
-    <form id="shipmentForm">
-      <div class="form-group">
-        <label for="originCity">{% trans "Origin City:" %}</label>
-        <input type="text" id="originCity" placeholder="{% trans 'e.g., Pullman, WA' %}" required>
+    <aside class="map-sidebar" aria-labelledby="locations-heading">
+      <div class="map-sidebar-header">
+        <h2 id="locations-heading">{% trans "Locations" %}</h2>
+        <p id="filter-summary" role="status" aria-live="polite">
+          {% blocktrans count count=workshops|length %}{{ count }} workshop{% plural %}{{ count }} workshops{% endblocktrans %}
+        </p>
       </div>
-      <div class="form-group">
-        <label for="destCity">{% trans "Destination City:" %}</label>
-        <input type="text" id="destCity" placeholder="{% trans 'e.g., Guatemala City, Guatemala' %}" required>
+      <div class="map-filters" id="map-filters">
+        <label for="workshop-search">{% trans "Search workshops" %}</label>
+        <input id="workshop-search" type="search" placeholder="{% trans 'Title, city, or description' %}" autocomplete="off">
+        <div class="map-filter-row">
+          <div>
+            <label for="city-filter">{% trans "City" %}</label>
+            <select id="city-filter">
+              <option value="">{% trans "All cities" %}</option>
+              {% for city in cities %}<option value="{{ city }}">{{ city }}</option>{% endfor %}
+            </select>
+          </div>
+          <div>
+            <label for="date-filter">{% trans "When" %}</label>
+            <select id="date-filter">
+              <option value="">{% trans "Any date" %}</option>
+              <option value="upcoming">{% trans "Upcoming" %}</option>
+              <option value="past">{% trans "Past" %}</option>
+            </select>
+          </div>
+        </div>
+        <button id="clear-filters" class="map-text-button" type="button">{% trans "Clear filters" %}</button>
       </div>
-      <div class="form-group">
-        <label for="transitDays">{% trans "Transit Time - Days:" %}</label>
-        <input type="number" id="transitDays" value="0" min="0">
+
+      <div id="workshop-list" class="workshop-list">
+        {% for workshop in workshops %}
+          <article class="workshop-card" data-workshop-id="{{ workshop.pk }}">
+            {% if show_workshop_photos and workshop.photo %}<img src="{{ workshop.photo.url }}" alt="" loading="lazy">{% endif %}
+            <div class="workshop-card-body">
+              <p class="workshop-date">{{ workshop.date|date:"M j, Y" }}</p>
+              <h3>{{ workshop.title }}</h3>
+              {% if workshop.city %}<p class="workshop-city">{{ workshop.city }}</p>{% endif %}
+              {% if workshop.description %}<p class="workshop-description">{{ workshop.description }}</p>{% endif %}
+              <div class="workshop-card-actions">
+                <button class="map-text-button focus-workshop" type="button" data-id="{{ workshop.pk }}" hidden>{% trans "View on map" %}</button>
+                {% if can_manage_map %}
+                  <button class="map-text-button edit-workshop" type="button" data-id="{{ workshop.pk }}">{% trans "Edit" %}</button>
+                  <form method="post" class="delete-workshop-form">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="delete_workshop">
+                    <input type="hidden" name="workshop_id" value="{{ workshop.pk }}">
+                    <button class="map-text-button map-text-danger" type="submit">{% trans "Delete" %}</button>
+                  </form>
+                {% endif %}
+              </div>
+            </div>
+          </article>
+        {% empty %}
+          <div class="map-empty" id="no-workshops">
+            <h3>{% trans "No locations published yet" %}</h3>
+            <p>{% trans "Workshop locations will appear here when the team adds them." %}</p>
+          </div>
+        {% endfor %}
+        <div class="map-empty" id="no-filter-results" hidden>
+          <h3>{% trans "No matching locations" %}</h3>
+          <p>{% trans "Try another search or clear the filters." %}</p>
+        </div>
       </div>
-      <div class="form-group">
-        <label for="transitHours">{% trans "Hours:" %}</label>
-        <input type="number" id="transitHours" value="0" min="0" max="23">
-      </div>
-      <div class="form-group">
-        <label for="transitMinutes">{% trans "Minutes:" %}</label>
-        <input type="number" id="transitMinutes" value="1" min="0" max="59">
-      </div>
-      <div class="form-group">
-        <label for="transitSeconds">{% trans "Seconds:" %}</label>
-        <input type="number" id="transitSeconds" value="0" min="0" max="59">
-      </div>
-      <button type="submit" class="btn btn-primary">{% trans "Create Shipment" %}</button>
-    </form>
+    </aside>
   </div>
-</div>
 
-<div id="pinModal" class="modal">
-  <div class="modal-content">
-    <span class="close" id="closePinModal">&times;</span>
-    <h3>{% trans "Add Workshop Pin" %}</h3>
-    <form id="new-pin-form" action="{% url 'pages:shipment_map' %}" method="post" enctype="multipart/form-data">
-      {% csrf_token %}
-      <input type="hidden" name="latitude" id="pinLatitude">
-      <input type="hidden" name="longitude" id="pinLongitude">
-      <div style="margin-bottom:8px;"><strong>{% trans "New workshop location:" %}</strong> <span id="pinCoordinates">{% trans "None" %}</span></div>
-      <div class="form-group">
-        <label>{% trans "Title:" %}</label>
-        <input id="pinTitle" name="title" type="text" required>
-      </div>
-      <div class="form-group">
-        <label>{% trans "City:" %}</label>
-        <input id="pinCity" name="city" type="text" placeholder="{% trans 'e.g., Pullman, WA' %}">
-      </div>
-      <div class="form-group">
-        <label>{% trans "Date:" %}</label>
-        <input id="pinDate" name="date" type="date" required>
-      </div>
-      <div class="form-group">
-        <label>{% trans "Description:" %}</label>
-        <textarea id="pinDescription" name="description" rows="4"></textarea>
-      </div>
-      <div class="form-group">
-        <label>{% trans "Photo (optional):" %}</label>
-        <input name="photo" type="file" accept="image/*">
-      </div>
-      <div class="button-group">
-        <button type="submit" class="btn btn-primary">{% trans "Save Workshop Pin" %}</button>
-        <button id="cancelPinButton" type="button" class="btn btn-secondary">{% trans "Cancel" %}</button>
-      </div>
-    </form>
-  </div>
-</div>
+  {% if can_manage_map %}
+    <dialog id="workshop-dialog" class="map-dialog" {% if open_form == 'workshop' %}data-open-on-load{% endif %}>
+      <form id="workshop-form" method="post">
+        {% csrf_token %}
+        <input id="workshop-action" type="hidden" name="action" value="{% if editing_id %}update_workshop{% else %}create_workshop{% endif %}">
+        <input id="workshop-id" type="hidden" name="workshop_id" value="{{ editing_id|default:'' }}">
+        <div class="map-dialog-header">
+          <h2 id="workshop-dialog-title">{% if editing_id %}{% trans "Edit workshop location" %}{% else %}{% trans "Add workshop location" %}{% endif %}</h2>
+          <button id="close-workshop" type="button" class="map-dialog-close" aria-label="{% trans 'Close form' %}">×</button>
+        </div>
+        {% if form.non_field_errors %}<div class="map-form-errors">{{ form.non_field_errors }}</div>{% endif %}
+        <div class="map-field">
+          <label for="{{ form.title.id_for_label }}">{% trans "Title" %}</label>{{ form.title }}{{ form.title.errors }}
+        </div>
+        <div class="map-field">
+          <label for="{{ form.city.id_for_label }}">{% trans "City or community" %}</label>{{ form.city }}{{ form.city.errors }}
+        </div>
+        <div class="map-field">
+          <label for="{{ form.date.id_for_label }}">{% trans "Date" %}</label>{{ form.date }}{{ form.date.errors }}
+        </div>
+        <div class="map-field">
+          <label for="{{ form.description.id_for_label }}">{% trans "Public description" %}</label>{{ form.description }}{{ form.description.errors }}
+        </div>
+        <div class="map-coordinates">
+          <div class="map-field"><label for="{{ form.latitude.id_for_label }}">{% trans "Latitude" %}</label>{{ form.latitude }}{{ form.latitude.errors }}</div>
+          <div class="map-field"><label for="{{ form.longitude.id_for_label }}">{% trans "Longitude" %}</label>{{ form.longitude }}{{ form.longitude.errors }}</div>
+        </div>
+        <p class="map-field-help">{% trans "Enter coordinates or choose a point on the map. Share only approved public location details." %}</p>
+        <button id="pick-workshop-point" class="map-button map-button-outline" type="button" hidden>{% trans "Choose point on map" %}</button>
+        <div class="map-dialog-actions">
+          <button id="cancel-workshop" class="map-button map-button-outline" type="button">{% trans "Cancel" %}</button>
+          <button class="map-button map-button-primary" type="submit">{% trans "Save location" %}</button>
+        </div>
+      </form>
+    </dialog>
 
-{% url 'pages:shipment_map' as shipment_map_url %}
-{% url 'pages:login' as login_url %}
-<div id="shipment-map-i18n" hidden
-  data-waiting="{% trans 'Waiting' %}"
-  data-in-transit="{% trans 'In Transit' %}"
-  data-delivered="{% trans 'Delivered' %}"
-  data-paused="{% trans 'Paused' %}"
-  data-future="{% trans 'Future' %}"
-  data-today="{% trans 'Today' %}"
-  data-past="{% trans 'Past' %}"
-  data-unknown="{% trans 'Unknown' %}"
-  data-seconds="{% trans 'seconds' %}"
-  data-miles="{% trans 'miles' %}"
-  data-shipment="{% trans 'Shipment' %}"
-  data-origin="{% trans 'Origin' %}"
-  data-destination="{% trans 'Destination' %}"
-  data-all-cities="{% trans 'All cities' %}"
-  data-no-filter-matches="{% trans 'No workshops match the current filters.' %}"
-  data-no-locations="{% trans 'No workshop locations yet. Use the Django admin area to add new pins and photos.' %}"
-  data-showing="{% trans 'Showing' %}"
-  data-of="{% trans 'of' %}"
-  data-workshop-singular="{% trans 'workshop' %}"
-  data-workshop-plural="{% trans 'workshops' %}"
-  data-date="{% trans 'Date:' %}"
-  data-status="{% trans 'Status:' %}"
-  data-city="{% trans 'City:' %}"
-  data-location="{% trans 'Location:' %}"
-  data-delete-confirm="{% trans 'Are you sure you want to delete this workshop?' %}"
-  data-csrf-missing="{% trans 'CSRF token not found' %}"
-  data-auth-required="{% trans 'Authentication required' %}"
-  data-admin-delete-required="{% trans 'You must be logged in as an admin to delete workshops.' %}"
-  data-delete-error="{% trans 'Error deleting workshop:' %}"
-  data-delete-failed="{% trans 'Could not delete workshop.' %}"
-  data-pin-placement-hint="{% trans 'Click the button, then click the map to place a new pin.' %}"
-  data-pin-placement-map-hint="{% trans 'Click anywhere on the map to place a new workshop pin.' %}"
-  data-origin-error="{% trans 'Could not find coordinates for origin city:' %}"
-  data-destination-error="{% trans 'Could not find coordinates for destination city:' %}">
-</div>
-<script>
-  window.workshopMarkersData = JSON.parse('{{ workshop_markers_json|default:"[]"|escapejs }}');
-  window.urls = {
-    shipment_map: '{{ shipment_map_url|escapejs }}',
-    login: '{{ login_url|escapejs }}'
-  };
-</script>
+    <dialog id="shipment-dialog" class="map-dialog" {% if open_form == 'shipment' %}data-open-on-load{% endif %}>
+      <form id="shipment-form" method="post">
+        {% csrf_token %}
+        <input id="shipment-action" type="hidden" name="action" value="{% if shipment_editing_id %}update_shipment{% else %}create_shipment{% endif %}">
+        <input id="shipment-id" type="hidden" name="shipment_id" value="{{ shipment_editing_id|default:'' }}">
+        <div class="map-dialog-header">
+          <h2 id="shipment-dialog-title">{% if shipment_editing_id %}{% trans "Edit supply journey" %}{% else %}{% trans "Add supply journey" %}{% endif %}</h2>
+          <button id="close-shipment" type="button" class="map-dialog-close" aria-label="{% trans 'Close form' %}">×</button>
+        </div>
+        {% if shipment_form.non_field_errors %}<div class="map-form-errors">{{ shipment_form.non_field_errors }}</div>{% endif %}
+        <p class="map-field-help">{% trans "Publish only verified, approved public information. A route is an illustration between endpoints, not a live position." %}</p>
+        <div class="map-field"><label for="{{ shipment_form.title.id_for_label }}">{% trans "Journey title" %}</label>{{ shipment_form.title }}{{ shipment_form.title.errors }}</div>
+        <div class="map-field"><label for="{{ shipment_form.origin_name.id_for_label }}">{% trans "Origin name" %}</label>{{ shipment_form.origin_name }}{{ shipment_form.origin_name.errors }}</div>
+        <div class="map-coordinates">
+          <div class="map-field"><label for="{{ shipment_form.origin_latitude.id_for_label }}">{% trans "Origin latitude" %}</label>{{ shipment_form.origin_latitude }}{{ shipment_form.origin_latitude.errors }}</div>
+          <div class="map-field"><label for="{{ shipment_form.origin_longitude.id_for_label }}">{% trans "Origin longitude" %}</label>{{ shipment_form.origin_longitude }}{{ shipment_form.origin_longitude.errors }}</div>
+        </div>
+        <div class="map-field"><label for="{{ shipment_form.destination_name.id_for_label }}">{% trans "Destination name" %}</label>{{ shipment_form.destination_name }}{{ shipment_form.destination_name.errors }}</div>
+        <div class="map-coordinates">
+          <div class="map-field"><label for="{{ shipment_form.destination_latitude.id_for_label }}">{% trans "Destination latitude" %}</label>{{ shipment_form.destination_latitude }}{{ shipment_form.destination_latitude.errors }}</div>
+          <div class="map-field"><label for="{{ shipment_form.destination_longitude.id_for_label }}">{% trans "Destination longitude" %}</label>{{ shipment_form.destination_longitude }}{{ shipment_form.destination_longitude.errors }}</div>
+        </div>
+        <div class="map-field"><label for="{{ shipment_form.contents_summary.id_for_label }}">{% trans "Supplies being sent" %}</label>{{ shipment_form.contents_summary }}{{ shipment_form.contents_summary.errors }}</div>
+        <div class="map-field"><label for="{{ shipment_form.impact_summary.id_for_label }}">{% trans "Public impact summary" %}</label>{{ shipment_form.impact_summary }}{{ shipment_form.impact_summary.errors }}</div>
+        <div class="map-field"><label for="{{ shipment_form.partner_name.id_for_label }}">{% trans "Partner organization (optional)" %}</label>{{ shipment_form.partner_name }}{{ shipment_form.partner_name.errors }}</div>
+        <div class="map-filter-row">
+          <div class="map-field"><label for="{{ shipment_form.status.id_for_label }}">{% trans "Reported status" %}</label>{{ shipment_form.status }}{{ shipment_form.status.errors }}</div>
+          <div class="map-field"><label for="{{ shipment_form.status_date.id_for_label }}">{% trans "Status date" %}</label>{{ shipment_form.status_date }}{{ shipment_form.status_date.errors }}</div>
+        </div>
+        <div class="map-check-field"><label for="{{ shipment_form.is_published.id_for_label }}">{{ shipment_form.is_published }} {% trans "Publish this journey" %}</label>{{ shipment_form.is_published.errors }}</div>
+        <div class="map-dialog-actions">
+          <button id="cancel-shipment" class="map-button map-button-outline" type="button">{% trans "Cancel" %}</button>
+          <button class="map-button map-button-primary" type="submit">{% trans "Save journey" %}</button>
+        </div>
+      </form>
+    </dialog>
+  {% endif %}
+</main>
+
+{{ map_config|json_script:"map-config" }}
 <script src="{% static 'pages/javascript/shipment_map.js' %}" defer></script>
 {% endblock %}

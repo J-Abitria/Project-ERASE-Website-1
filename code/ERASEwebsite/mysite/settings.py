@@ -187,6 +187,10 @@ STORAGES = {
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
+# Change providers through an environment variable without editing the map client.
+MAP_STYLE_URL = os.environ.get('MAP_STYLE_URL', 'https://tiles.openfreemap.org/styles/liberty')
+MAP_SHOW_WORKSHOP_PHOTOS = os.environ.get('MAP_SHOW_WORKSHOP_PHOTOS', '').lower() == 'true'
+
 # Authentication settings
 LOGIN_URL = 'pages:login'
 LOGIN_REDIRECT_URL = 'pages:home'
