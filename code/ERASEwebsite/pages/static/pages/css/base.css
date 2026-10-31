@@ -8,6 +8,9 @@ body {
     font-family: 'Garet', Arial, sans-serif;
     line-height: 1.6;
     color: #333;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
 }
 
 header {
@@ -128,7 +131,7 @@ footer {
     color: white;
     text-align: center;
     padding: 2rem;
-    margin-top: 3rem;
+    margin-top: auto;
 }
 
 footer a {
