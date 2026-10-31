@@ -58,7 +58,7 @@
 </head>
 <body>
     <header>
-        <nav>
+        <nav aria-label="{% trans 'Main navigation' %}" id="main-navigation">
             <div class="logo">
                 <a href="{% url 'pages:home' %}" aria-label="{% trans 'Home' %}">
                     {% if website_theme.logo %}
@@ -68,14 +68,16 @@
                     {% endif %}
                 </a>
             </div>
-            <ul>
+            <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="nav-menu" hidden>
+                <span class="nav-toggle-icon" aria-hidden="true"></span>
+                <span>{% trans "Menu" %}</span>
+            </button>
+            <ul id="nav-menu" class="nav-menu">
                 <li><a href="{% url 'pages:home' %}">{% trans "Home" %}</a></li>
-                <li class="nav-dropdown">
-                    <a href="{% url 'blog:post_list' %}">
-                        {% trans "Blog" %}
-                    </a>
-
+                <li>
                     {% if user.is_staff or user.is_superuser %}
+                    <details class="nav-dropdown">
+                        <summary>{% trans "Blog" %}</summary>
                         <ul class="dropdown-menu">
                             <li>
                                 <a href="{% url 'blog:post_list' %}">
@@ -90,25 +92,34 @@
                                 </a>
                             </li>
                         </ul>
+                    </details>
+                    {% else %}
+                    <a href="{% url 'blog:post_list' %}">{% trans "Blog" %}</a>
                     {% endif %}
                 </li>
-                <li class="nav-dropdown">
-                    <a href="{% url 'pages:about' %}">{% trans "About" %}</a>
+                <li>
+                    <details class="nav-dropdown">
+                    <summary>{% trans "About" %}</summary>
                     <ul class="dropdown-menu">
+                        <li><a href="{% url 'pages:about' %}">{% trans "About Project ERASE" %}</a></li>
                         <li><a href="mailto:theprojecterase@gmail.com">{% trans "Contact" %}</a></li>
                     </ul>
+                    </details>
                 </li>
-                <li class="nav-dropdown">
-                    <a href="#">{% trans "Resources" %}</a>
+                <li>
+                    <details class="nav-dropdown">
+                    <summary>{% trans "Resources" %}</summary>
                     <ul class="dropdown-menu">
                         <li><a href="{% url 'pages:shipment_map' %}">{% trans "Map" %}</a></li>
                         <li><a href="{% url 'pages:calendar' %}">{% trans "Events" %}</a></li>
                         <li><a href="{% url 'pages:studentdb' %}">{% trans "Student Database" %}</a></li>
                     </ul>
+                    </details>
                 </li>
                 {% if user.is_authenticated %}
-                <li class="nav-dropdown">
-                    <a href="#">{% trans "Profile" %}</a>
+                <li>
+                    <details class="nav-dropdown">
+                    <summary>{% trans "Profile" %}</summary>
                     <ul class="dropdown-menu">
                         <li><a href="{% url 'pages:account' %}">{% trans "My Account" %}</a></li>
                         {% if user.is_superuser %}
@@ -122,10 +133,11 @@
                         <li>
                             <form method="post" action="{% url 'pages:logout' %}">
                                 {% csrf_token %}
-                                <button type="submit" style="background:none;border:none;color:white;font:inherit;cursor:pointer;padding:0.6rem 1.1rem;width:100%;text-align:left;display:block;white-space:nowrap;transition:background 0.2s;" onmouseover="this.parentElement.style.background='rgba(255,255,255,0.15)'" onmouseout="this.parentElement.style.background=''">{% trans "Sign Out" %}</button>
+                                <button type="submit" class="nav-signout">{% trans "Sign Out" %}</button>
                             </form>
                         </li>
                     </ul>
+                    </details>
                 </li>
                 {% else %}
                 <li><a href="{% url 'pages:login' %}">{% trans "Login" %}</a></li>
@@ -150,6 +162,7 @@
             </ul>
         </nav>
     </header>
+    <script src="{% static 'pages/javascript/navigation.js' %}" defer></script>
 
     {% block content %}{% endblock %}
 

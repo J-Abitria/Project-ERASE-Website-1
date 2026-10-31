@@ -23,6 +23,7 @@
         </div>
 
         {% if users %}
+        <div class="table-scroll" role="region" aria-label="{% trans 'Users' %}" tabindex="0">
         <table class="manage-users-table">
             <thead>
                 <tr>
@@ -71,6 +72,7 @@
                 {% endfor %}
             </tbody>
         </table>
+        </div>
         {% else %}
             <p>{% trans "No other users found." %}</p>
         {% endif %}

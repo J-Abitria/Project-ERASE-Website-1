@@ -1,12 +1,27 @@
 const config = JSON.parse(document.getElementById('calendar-config').textContent);
 const rsvpedIds = new Set(JSON.parse(document.getElementById('rsvped-ids-data').textContent));
+let modalTrigger = null;
+
+function showCalendarModal(id) {
+    modalTrigger = document.activeElement;
+    const overlay = document.getElementById(id);
+    overlay.classList.add('open');
+    overlay.querySelector('.modal-box').focus();
+    document.body.classList.add('calendar-modal-open');
+}
+
+function hideCalendarModal(id) {
+    document.getElementById(id).classList.remove('open');
+    document.body.classList.remove('calendar-modal-open');
+    modalTrigger?.focus();
+}
 
 function openModal() {
-    document.getElementById('event-modal-overlay').classList.add('open');
+    showCalendarModal('event-modal-overlay');
 }
 
 function closeModal() {
-    document.getElementById('event-modal-overlay').classList.remove('open');
+    hideCalendarModal('event-modal-overlay');
 }
 
 document.getElementById('event-modal-overlay')?.addEventListener('click', function(e) {
@@ -42,13 +57,31 @@ function openEventDetailModal(pill) {
         rsvpForm.style.display = 'none';
     }
 
-    document.getElementById('event-detail-overlay').classList.add('open');
+    showCalendarModal('event-detail-overlay');
 }
 
 function closeEventDetailModal() {
-    document.getElementById('event-detail-overlay').classList.remove('open');
+    hideCalendarModal('event-detail-overlay');
 }
 
 document.getElementById('event-detail-overlay')?.addEventListener('click', function(e) {
     if (e.target === this) closeEventDetailModal();
+});
+
+document.addEventListener('keydown', event => {
+    const overlay = document.querySelector('.modal-overlay.open');
+    if (!overlay) return;
+    if (event.key === 'Escape') hideCalendarModal(overlay.id);
+    if (event.key !== 'Tab') return;
+    const controls = [...overlay.querySelectorAll('button, input, textarea, select, a[href]')]
+        .filter(control => !control.disabled && control.getClientRects().length);
+    const first = controls[0];
+    const last = controls[controls.length - 1];
+    if (event.shiftKey && (document.activeElement === first || document.activeElement.classList.contains('modal-box'))) {
+        event.preventDefault();
+        last?.focus();
+    } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first?.focus();
+    }
 });

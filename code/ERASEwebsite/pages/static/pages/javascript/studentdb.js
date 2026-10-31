@@ -8,18 +8,18 @@ const cropSave = document.getElementById("cropSave");
 const cropCancel = document.getElementById("cropCancel");
 
 const dropZone = document.getElementById("dropZone");
-dropZone.addEventListener("click", () => fileInput.click());
+dropZone?.addEventListener("click", () => fileInput.click());
 
-dropZone.addEventListener("dragover", (e) => {
+dropZone?.addEventListener("dragover", (e) => {
     e.preventDefault();
     dropZone.style.background = "#e8f2ff";
 });
 
-dropZone.addEventListener("dragleave", () => {
+dropZone?.addEventListener("dragleave", () => {
     dropZone.style.background = "transparent";
 });
 
-dropZone.addEventListener("drop", (e) => {
+dropZone?.addEventListener("drop", (e) => {
     e.preventDefault();
     dropZone.style.background = "transparent";
 
@@ -53,7 +53,7 @@ dropZone.addEventListener("drop", (e) => {
     reader.readAsDataURL(file);
 });
 
-fileInput.addEventListener("change", function (event) {
+fileInput?.addEventListener("change", function (event) {
     const file = event.target.files[0];
     if (!file) return;
 
@@ -148,7 +148,7 @@ const finalForm = document.getElementById('finalBulkForm');
 
 let stagedStudents = [];
 
-openBulkBtn.onclick = () => bulkModal.style.display = 'block';
+if (openBulkBtn) openBulkBtn.onclick = () => bulkModal.style.display = 'block';
 cancelBulkBtn.onclick = () => {
     bulkModal.style.display = 'none';
     stagedStudents = [];

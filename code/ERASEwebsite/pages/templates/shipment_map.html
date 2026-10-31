@@ -21,8 +21,8 @@
   <section class="map-intro">
     <div>
       <p class="map-eyebrow">{% trans "Project ERASE in the community" %}</p>
-      <h2>{% trans "Explore our impact map" %}</h2>
-      <p>{% trans "Explore workshop locations and staff-reported supply journeys supporting communities in Guatemala." %}</p>
+      <h1>{% trans "Explore our impact map" %}</h1>
+      <p>{% trans "Explore workshop locations and supply journeys supporting communities in Guatemala." %}</p>
     </div>
     {% if can_manage_map %}
       <button id="add-workshop" class="map-button map-button-primary" type="button">{% trans "Add workshop location" %}</button>
@@ -39,7 +39,6 @@
     <div class="journeys-heading">
       <div>
         <h2 id="journeys-heading">{% trans "Supply journeys" %}</h2>
-        <p>{% trans "Routes connect reported endpoints for illustration. Status is updated by the team; this is not live package tracking." %}</p>
       </div>
       {% if can_manage_map %}<button id="add-shipment" class="map-button map-button-outline" type="button">{% trans "Add supply journey" %}</button>{% endif %}
     </div>

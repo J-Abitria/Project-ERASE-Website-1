@@ -31,7 +31,9 @@ class CalendarView(View):
         month = request.GET.get('month')
         current_year, current_month = resolve_month_year(year, month)
 
-        month_events = Event.objects.filter(date__year=current_year, date__month=current_month)
+        month_events = Event.objects.filter(
+            date__year=current_year, date__month=current_month
+        ).order_by('date', 'time', 'pk')
         events_by_date = {}
         for event in month_events:
             events_by_date.setdefault(event.date, []).append(event)
@@ -50,6 +52,7 @@ class CalendarView(View):
             'event_form': EventForm(),
             'event_added': request.GET.get('event_added') == '1',
             'rsvped_ids': list(rsvped_ids),
+            'month_events': month_events,
         }
 
         return render(request, self.template_name, context)

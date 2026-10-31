@@ -140,3 +140,12 @@
     padding: 0.45rem 1rem;
     font-size: 0.86rem;
 }
+
+@media (max-width: 600px) {
+    .account-card { padding: 1.25rem; margin: 1.5rem auto; }
+    .account-field { flex-direction: column; align-items: flex-start; gap: 0.25rem; }
+    .account-field .label { min-width: 0; }
+    .account-field .value { text-align: left; overflow-wrap: anywhere; }
+    .danger-zone { padding: 1.25rem; margin-bottom: 6rem; }
+    .account-card .btn, .danger-zone .btn-delete { width: 100%; min-height: 44px; }
+}

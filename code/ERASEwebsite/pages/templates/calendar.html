@@ -33,13 +33,39 @@
         </div>
     </div>
 
-    {{ calendar_html|safe }}
+    <div class="calendar-month-grid">
+        {{ calendar_html|safe }}
+    </div>
+    <section class="calendar-agenda" aria-label="{% trans 'Events this month' %}">
+        <h3>{% trans "Events this month" %}</h3>
+        {% for event in month_events %}
+        <button type="button" class="agenda-event"
+            data-event-id="{{ event.pk }}"
+            data-title="{{ event.title }}"
+            data-time="{{ event.date|date:'l, F j' }} · {{ event.time|time:'g:i A' }}"
+            data-description="{{ event.description }}"
+            data-has-rsvp="{{ event.hasRSVP|yesno:'true,false' }}"
+            onclick="openEventDetailModal(this)">
+            <span class="agenda-date" aria-hidden="true">
+                <span>{{ event.date|date:"M" }}</span>
+                <strong>{{ event.date|date:"j" }}</strong>
+            </span>
+            <span class="agenda-info">
+                <span class="agenda-time">{{ event.date|date:"l, F j" }} · {{ event.time|time:"g:i A" }}</span>
+                <strong>{{ event.title }}</strong>
+                <span class="agenda-details">{% trans "View details" %} &rarr;</span>
+            </span>
+        </button>
+        {% empty %}
+        <p class="agenda-empty">{% trans "No events scheduled this month. Check another month or visit again soon." %}</p>
+        {% endfor %}
+    </section>
 </div>
 
 {% if user.is_staff or user.is_superuser %}
 <div id="event-modal-overlay" class="modal-overlay">
-    <div class="modal-box">
-        <h3>{% trans "Add Event" %}</h3>
+    <div class="modal-box" role="dialog" aria-modal="true" aria-labelledby="add-event-title" tabindex="-1">
+        <h3 id="add-event-title">{% trans "Add Event" %}</h3>
         <form method="post" action="{% url 'pages:add_event' %}">
             {% csrf_token %}
             {{ event_form.as_p }}
@@ -57,7 +83,7 @@
 {% endif %}
 
 <div id="event-detail-overlay" class="modal-overlay">
-    <div class="modal-box event-detail-box">
+    <div class="modal-box event-detail-box" role="dialog" aria-modal="true" aria-labelledby="detail-title" tabindex="-1">
         <h3 id="detail-title" class="event-detail-title"></h3>
         <div id="detail-time" class="event-detail-time"></div>
         <p id="detail-description" class="event-detail-description"></p>

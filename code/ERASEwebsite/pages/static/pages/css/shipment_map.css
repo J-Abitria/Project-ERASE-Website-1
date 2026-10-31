@@ -168,3 +168,21 @@
   #map { height: 410px; }
   .map-dialog { padding: 1rem; }
 }
+
+/* Mobile touch and dialog polish for the current impact map. */
+@media (max-width: 600px) {
+  .map-page { padding-bottom: 6rem; }
+  .map-intro > div { min-width: 0; }
+  .map-button { min-height: 44px; max-width: 100%; white-space: normal; }
+  .map-text-button { min-height: 44px; }
+  .map-dialog { margin: auto; overflow-y: auto; overscroll-behavior: contain; }
+  .map-dialog-close {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 44px;
+    min-height: 44px;
+    flex-shrink: 0;
+  }
+  .map-dialog-actions { flex-wrap: wrap; }
+}

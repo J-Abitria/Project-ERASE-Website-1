@@ -25,6 +25,7 @@
     </div>
 
     {% if rsvps %}
+    <div class="table-scroll" role="region" aria-label="{% trans 'Event RSVPs' %}" tabindex="0">
     <table class="attendee-table">
         <thead>
             <tr>
@@ -43,6 +44,7 @@
             {% endfor %}
         </tbody>
     </table>
+    </div>
     {% else %}
     <div class="empty-state">{% trans "No one has RSVPed for this event." %}</div>
     {% endif %}

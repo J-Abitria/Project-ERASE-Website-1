@@ -114,6 +114,7 @@
                 </form>
 
                 {% if funding_entries %}
+                <div class="table-scroll" role="region" aria-label="{% trans 'Report data' %}" tabindex="0">
                 <table class="report-table">
                     <thead>
                         <tr>
@@ -153,6 +154,7 @@
                         </tr>
                     </tfoot>
                 </table>
+                </div>
                 {% else %}
                 <p class="empty-state">{% trans "No funding records found." %}</p>
                 {% endif %}
@@ -225,6 +227,7 @@
                     <a class="btn btn-sm" href="{% url 'pages:reports_pdf' %}?report=workshops">{% trans "Export PDF" %}</a>
                 </div>
                 {% if workshops %}
+                <div class="table-scroll" role="region" aria-label="{% trans 'Report data' %}" tabindex="0">
                 <table class="report-table">
                     <thead>
                         <tr>
@@ -257,6 +260,7 @@
                         {% endfor %}
                     </tbody>
                 </table>
+                </div>
                 {% else %}
                 <p class="empty-state">{% trans "No workshop records found." %}</p>
                 {% endif %}
@@ -313,6 +317,7 @@
                     <a class="btn btn-sm" href="{% url 'pages:reports_pdf' %}?report=students">{% trans "Export PDF" %}</a>
                 </div>
                 {% if student_entries %}
+                <div class="table-scroll" role="region" aria-label="{% trans 'Report data' %}" tabindex="0">
                 <table class="report-table">
                     <thead>
                         <tr>
@@ -348,6 +353,7 @@
                         </tr>
                     </tfoot>
                 </table>
+                </div>
                 {% else %}
                 <p class="empty-state">{% trans "No student support records found." %}</p>
                 {% endif %}
@@ -430,6 +436,7 @@
                 </form>
 
                 {% if social_entries %}
+                <div class="table-scroll" role="region" aria-label="{% trans 'Report data' %}" tabindex="0">
                 <table class="report-table">
                     <thead>
                         <tr>
@@ -468,6 +475,7 @@
                         {% endfor %}
                     </tbody>
                 </table>
+                </div>
                 {% else %}
                 <p class="empty-state">{% trans "No social media records found." %}</p>
                 {% endif %}
