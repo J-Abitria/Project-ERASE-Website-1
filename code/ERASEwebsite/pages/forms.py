@@ -41,3 +41,21 @@ class WebsiteThemeForm(forms.ModelForm):
             field: forms.TextInput(attrs={'type': 'color'})
             for field in fields
         }
+
+
+class WebsiteLogoForm(forms.ModelForm):
+    class Meta:
+        model = WebsiteTheme
+        fields = ['logo']
+        labels = {'logo': _('Choose a JPG or PNG logo')}
+        widgets = {
+            'logo': forms.FileInput(attrs={
+                'accept': '.jpg,.jpeg,.png,image/jpeg,image/png',
+                'aria-label': _('Choose a JPG or PNG logo'),
+                'hidden': True,
+            }),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['logo'].required = True

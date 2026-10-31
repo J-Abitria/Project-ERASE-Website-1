@@ -6,8 +6,12 @@ Domain models have been refactored into dedicated apps:
 - Workshop models -> workshops.models
 - Reporting & Analytics models -> reports.models
 """
-from django.core.validators import RegexValidator
+from pathlib import Path
+
+from django.core.validators import FileExtensionValidator, RegexValidator
+from django.core.files.storage import FileSystemStorage
 from django.db import models
+from django.utils.deconstruct import deconstructible
 
 from students.models import Student, StudentManager, StudentQuerySet
 from workshops.models import Workshop
@@ -24,6 +28,33 @@ DEFAULT_THEME_COLORS = {
     'accent_color': '#0283FF',
     'accent_text': '#ffffff',
 }
+
+
+@deconstructible
+class WebsiteLogoStorage(FileSystemStorage):
+    def get_available_name(self, name, max_length=None):
+        if self.exists(name):
+            self.delete(name)
+        return name
+
+    def delete_other_logos(self, name):
+        directory = str(Path(name).parent).replace('\\', '/')
+        try:
+            _, filenames = self.listdir(directory)
+        except FileNotFoundError:
+            return
+
+        for filename in filenames:
+            other_name = f'{directory}/{filename}'
+            if other_name != name:
+                self.delete(other_name)
+
+
+def website_logo_upload_to(instance, filename):
+    extension = Path(filename).suffix.lower()
+    if extension == '.jpeg':
+        extension = '.jpg'
+    return f'website/logo{extension}'
 
 
 class WebsiteTheme(models.Model):
@@ -68,6 +99,13 @@ class WebsiteTheme(models.Model):
         default=DEFAULT_THEME_COLORS['accent_text'],
         validators=[RegexValidator(r'^#[0-9A-Fa-f]{6}$')],
     )
+    logo = models.ImageField(
+        upload_to=website_logo_upload_to,
+        blank=True,
+        null=True,
+        validators=[FileExtensionValidator(['jpg', 'jpeg', 'png'])],
+        storage=WebsiteLogoStorage(),
+    )
 
     class Meta:
         verbose_name = 'website theme'
@@ -75,6 +113,22 @@ class WebsiteTheme(models.Model):
 
     def __str__(self):
         return 'Website theme'
+
+    def save(self, *args, **kwargs):
+        old_logo_name = None
+        if self.pk:
+            old_logo_name = type(self).objects.filter(pk=self.pk).values_list(
+                'logo', flat=True
+            ).first()
+        logo_changed = bool(self.logo) and old_logo_name != self.logo.name
+
+        super().save(*args, **kwargs)
+
+        new_logo_name = self.logo.name if self.logo else None
+        if old_logo_name and old_logo_name != new_logo_name:
+            self.logo.storage.delete(old_logo_name)
+        if logo_changed:
+            self.logo.storage.delete_other_logos(new_logo_name)
 
     def restore_defaults(self):
         for field, color in DEFAULT_THEME_COLORS.items():

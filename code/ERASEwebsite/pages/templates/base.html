@@ -61,7 +61,11 @@
         <nav>
             <div class="logo">
                 <a href="{% url 'pages:home' %}" aria-label="{% trans 'Home' %}">
+                    {% if website_theme.logo %}
+                    <img src="{{ website_theme.logo.url }}" alt="Project ERASE">
+                    {% else %}
                     <img src="{% static 'pages/images/logo.png' %}" alt="Project ERASE">
+                    {% endif %}
                 </a>
             </div>
             <ul>

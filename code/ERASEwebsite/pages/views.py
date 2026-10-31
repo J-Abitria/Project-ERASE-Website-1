@@ -10,7 +10,7 @@ from django.contrib import messages
 from django.core.exceptions import PermissionDenied
 from django.utils.translation import gettext as _
 
-from .forms import AccountEmailForm, WebsiteThemeForm
+from .forms import AccountEmailForm, WebsiteLogoForm, WebsiteThemeForm
 from .models import WebsiteTheme
 
 
@@ -118,23 +118,39 @@ class WebsiteThemeView(LoginRequiredMixin, View):
         theme = WebsiteTheme.objects.get_or_create(pk=1)[0]
         return render(request, self.template_name, {
             'theme_form': WebsiteThemeForm(instance=theme),
+            'logo_form': WebsiteLogoForm(instance=theme),
         })
 
     def post(self, request, *args, **kwargs):
         if not request.user.is_superuser:
             raise PermissionDenied
         theme = WebsiteTheme.objects.get_or_create(pk=1)[0]
-        if request.POST.get('action') == 'reset':
+        action = request.POST.get('action')
+        if action == 'reset':
             theme.restore_defaults()
             messages.success(request, _('Website theme restored to the original colors.'))
             return redirect('pages:website_theme')
+
+        if action == 'upload_logo':
+            form = WebsiteLogoForm(request.POST, request.FILES, instance=theme)
+            if form.is_valid():
+                form.save()
+                messages.success(request, _('Website logo updated successfully.'))
+                return redirect('pages:website_theme')
+            return render(request, self.template_name, {
+                'theme_form': WebsiteThemeForm(instance=theme),
+                'logo_form': form,
+            })
 
         form = WebsiteThemeForm(request.POST, instance=theme)
         if form.is_valid():
             form.save()
             messages.success(request, _('Website theme updated successfully.'))
             return redirect('pages:website_theme')
-        return render(request, self.template_name, {'theme_form': form})
+        return render(request, self.template_name, {
+            'theme_form': form,
+            'logo_form': WebsiteLogoForm(instance=theme),
+        })
 
 
 class DeleteAccountView(LoginRequiredMixin, View):

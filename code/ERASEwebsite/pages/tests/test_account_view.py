@@ -1,5 +1,12 @@
+from io import BytesIO
+from tempfile import TemporaryDirectory
+
+from PIL import Image
+from django.core.files.base import ContentFile
 from django.test import TestCase, Client
 from django.contrib.auth.models import User, Group
+from django.core.files.uploadedfile import SimpleUploadedFile
+from django.test import override_settings
 from django.urls import reverse
 
 from pages.models import WebsiteTheme
@@ -117,6 +124,18 @@ class WebsiteThemeViewTests(TestCase):
         self.assertEqual(theme_page.status_code, 200)
         self.assertContains(theme_page, 'type="color"')
         self.assertContains(theme_page, 'Website Theme')
+        self.assertContains(theme_page, 'Website Logo')
+        self.assertContains(theme_page, 'accept=".jpg,.jpeg,.png,image/jpeg,image/png"')
+        self.assertContains(theme_page, 'id="choose-logo"')
+        self.assertContains(theme_page, 'name="logo"')
+        self.assertContains(theme_page, 'website_logo.js')
+        for extra_file_control in (
+            'Currently:',
+            'Clear',
+            'Change:',
+            'Browse',
+        ):
+            self.assertNotContains(theme_page, extra_file_control)
 
         account_page = self.client.get(reverse('pages:account'))
         self.assertNotContains(account_page, 'class="account-tabs"')
@@ -194,3 +213,100 @@ class WebsiteThemeViewTests(TestCase):
         self.assertEqual(theme.header_text, '#ffffff')
         self.assertEqual(theme.accent_color, '#0283FF')
         self.assertEqual(theme.accent_text, '#ffffff')
+
+    def test_master_can_upload_site_logo(self):
+        image = BytesIO()
+        Image.new('RGB', (1, 1), color='blue').save(image, format='PNG')
+        image.seek(0)
+        self.client.login(username='themeadmin', password='Password123!')
+
+        with TemporaryDirectory() as media_root:
+            with override_settings(MEDIA_ROOT=media_root):
+                response = self.client.post(self.theme_url, {
+                    'action': 'upload_logo',
+                    'logo': SimpleUploadedFile(
+                        'site-logo.png',
+                        image.read(),
+                        content_type='image/png',
+                    ),
+                })
+
+                self.assertRedirects(response, self.theme_url)
+                theme = WebsiteTheme.objects.get(pk=1)
+                self.assertEqual(theme.logo.name, 'website/logo.png')
+                self.assertContains(self.client.get(reverse('pages:home')), theme.logo.url)
+
+    def test_replacing_site_logo_deletes_old_file_and_keeps_fixed_name(self):
+        image_bytes = {}
+        for image_format in ('PNG', 'JPEG'):
+            image = BytesIO()
+            Image.new('RGB', (1, 1), color='blue').save(image, format=image_format)
+            image_bytes[image_format] = image.getvalue()
+
+        self.client.login(username='themeadmin', password='Password123!')
+        with TemporaryDirectory() as media_root:
+            with override_settings(MEDIA_ROOT=media_root):
+                first_response = self.client.post(self.theme_url, {
+                    'action': 'upload_logo',
+                    'logo': SimpleUploadedFile(
+                        'user-uploaded-name.png',
+                        image_bytes['PNG'],
+                        content_type='image/png',
+                    ),
+                })
+                self.assertRedirects(first_response, self.theme_url)
+                theme = WebsiteTheme.objects.get(pk=1)
+                old_logo_name = theme.logo.name
+                self.assertEqual(old_logo_name, 'website/logo.png')
+                self.assertTrue(theme.logo.storage.exists(old_logo_name))
+                theme.logo.storage.save(
+                    'website/old-upload.png',
+                    ContentFile(image_bytes['PNG']),
+                )
+
+                second_response = self.client.post(self.theme_url, {
+                    'action': 'upload_logo',
+                    'logo': SimpleUploadedFile(
+                        'another-user-name.jpeg',
+                        image_bytes['JPEG'],
+                        content_type='image/jpeg',
+                    ),
+                })
+
+                self.assertRedirects(second_response, self.theme_url)
+                theme.refresh_from_db()
+                self.assertEqual(theme.logo.name, 'website/logo.jpg')
+                self.assertFalse(theme.logo.storage.exists(old_logo_name))
+                self.assertTrue(theme.logo.storage.exists(theme.logo.name))
+                self.assertEqual(
+                    set(theme.logo.storage.listdir('website')[1]),
+                    {'logo.jpg'},
+                )
+
+    def test_logo_upload_rejects_non_jpg_png_files(self):
+        image = BytesIO()
+        Image.new('RGB', (1, 1), color='blue').save(image, format='GIF')
+        image.seek(0)
+        self.client.login(username='themeadmin', password='Password123!')
+
+        response = self.client.post(self.theme_url, {
+            'action': 'upload_logo',
+            'logo': SimpleUploadedFile(
+                'site-logo.gif',
+                image.read(),
+                content_type='image/gif',
+            ),
+        })
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(response.context['logo_form'].errors)
+        theme = WebsiteTheme.objects.get(pk=1)
+        self.assertFalse(theme.logo)
+
+    def test_logo_upload_requires_a_file(self):
+        self.client.login(username='themeadmin', password='Password123!')
+
+        response = self.client.post(self.theme_url, {'action': 'upload_logo'})
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(response.context['logo_form'].errors)
