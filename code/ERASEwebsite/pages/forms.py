@@ -2,7 +2,7 @@ from django import forms
 from django.contrib.auth.models import User
 from django.utils.translation import gettext_lazy as _
 
-from .models import WebsiteTheme
+from .models import AboutProfile, WebsiteTheme
 
 
 class AccountEmailForm(forms.ModelForm):
@@ -59,3 +59,21 @@ class WebsiteLogoForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields['logo'].required = True
+
+
+class AboutProfileForm(forms.ModelForm):
+    class Meta:
+        model = AboutProfile
+        fields = ['image', 'name', 'position_title', 'description']
+        labels = {
+            'image': _('Profile image (JPG or PNG)'),
+            'name': _('Name'),
+            'position_title': _('Position title'),
+            'description': _('Description (optional)'),
+        }
+        widgets = {
+            'image': forms.FileInput(attrs={
+                'accept': '.jpg,.jpeg,.png,image/jpeg,image/png',
+            }),
+            'description': forms.Textarea(attrs={'rows': 4}),
+        }

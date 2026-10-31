@@ -10,8 +10,8 @@ from django.contrib import messages
 from django.core.exceptions import PermissionDenied
 from django.utils.translation import gettext as _
 
-from .forms import AccountEmailForm, WebsiteLogoForm, WebsiteThemeForm
-from .models import WebsiteTheme
+from .forms import AboutProfileForm, AccountEmailForm, WebsiteLogoForm, WebsiteThemeForm
+from .models import AboutProfile, WebsiteTheme
 
 
 class HomeView(TemplateView):
@@ -19,9 +19,41 @@ class HomeView(TemplateView):
     template_name = 'home.html'
 
 
-class AboutView(TemplateView):
-    """Render the about page."""
+class AboutView(View):
+    """Render the About page and let the master manage its profiles."""
     template_name = 'about.html'
+
+    def get(self, request, *args, **kwargs):
+        return self.render_page(request)
+
+    def post(self, request, *args, **kwargs):
+        if not request.user.is_authenticated or not request.user.is_superuser:
+            raise PermissionDenied
+
+        action = request.POST.get('action')
+        if action == 'delete_profile':
+            profile = get_object_or_404(AboutProfile, pk=request.POST.get('profile_id'))
+            profile.delete()
+            messages.success(request, _('Profile removed from the About page.'))
+            return redirect('pages:about')
+
+        if action == 'add_profile':
+            form = AboutProfileForm(request.POST, request.FILES)
+            if form.is_valid():
+                form.save()
+                messages.success(request, _('Profile added to the About page.'))
+                return redirect('pages:about')
+            return self.render_page(request, form=form)
+
+        raise PermissionDenied
+
+    def render_page(self, request, form=None):
+        context = {
+            'profiles': AboutProfile.objects.all(),
+        }
+        if request.user.is_authenticated and request.user.is_superuser:
+            context['profile_form'] = form or AboutProfileForm()
+        return render(request, self.template_name, context)
 
 
 class SignUpView(View):

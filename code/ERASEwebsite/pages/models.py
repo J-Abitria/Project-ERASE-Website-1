@@ -7,6 +7,7 @@ Domain models have been refactored into dedicated apps:
 - Reporting & Analytics models -> reports.models
 """
 from pathlib import Path
+from uuid import uuid4
 
 from django.core.validators import FileExtensionValidator, RegexValidator
 from django.core.files.storage import FileSystemStorage
@@ -136,6 +137,38 @@ class WebsiteTheme(models.Model):
         self.save()
 
 
+def about_profile_image_upload_to(instance, filename):
+    extension = Path(filename).suffix.lower()
+    if extension == '.jpeg':
+        extension = '.jpg'
+    return f'about/profiles/{uuid4().hex}{extension}'
+
+
+class AboutProfile(models.Model):
+    """A person profile displayed on the About page."""
+    name = models.CharField(max_length=150)
+    position_title = models.CharField(max_length=150)
+    description = models.TextField(blank=True)
+    image = models.ImageField(
+        upload_to=about_profile_image_upload_to,
+        validators=[FileExtensionValidator(['jpg', 'jpeg', 'png'])],
+    )
+
+    class Meta:
+        ordering = ['name', 'pk']
+
+    def __str__(self):
+        return f'{self.name} - {self.position_title}'
+
+    def delete(self, *args, **kwargs):
+        image_name = self.image.name
+        storage = self.image.storage
+        result = super().delete(*args, **kwargs)
+        if image_name:
+            storage.delete(image_name)
+        return result
+
+
 __all__ = [
     'Student',
     'StudentManager',
@@ -146,4 +179,5 @@ __all__ = [
     'StudentSupport',
     'SocialMediaMetric',
     'WebsiteTheme',
+    'AboutProfile',
 ]
