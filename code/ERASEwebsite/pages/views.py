@@ -12,11 +12,24 @@ from django.utils.translation import gettext as _
 
 from .forms import AboutProfileForm, AccountEmailForm, WebsiteLogoForm, WebsiteThemeForm
 from .models import AboutProfile, WebsiteTheme
+from event_calendar.models import Event
+from blog.models import BlogPost
 
 
 class HomeView(TemplateView):
     """Render the homepage."""
     template_name = 'home.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['latest_events'] = Event.objects.order_by('-date', '-time', '-pk')[:3]
+        context['latest_posts'] = (
+            BlogPost.objects
+            .filter(published=True)
+            .select_related('author')
+            .order_by('-created_at', '-pk')[:3]
+        )
+        return context
 
 
 class AboutView(View):

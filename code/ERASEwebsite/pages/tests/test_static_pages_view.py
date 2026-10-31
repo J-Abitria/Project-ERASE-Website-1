@@ -1,3 +1,4 @@
+from datetime import date, time
 from io import BytesIO
 from tempfile import TemporaryDirectory
 
@@ -8,6 +9,8 @@ from django.test import TestCase, Client
 from django.test import override_settings
 from django.urls import reverse
 
+from blog.models import BlogPost
+from event_calendar.models import Event
 from pages.models import AboutProfile
 
 
@@ -31,6 +34,75 @@ class StaticPagesViewTests(TestCase):
         response = self.client.get(reverse('pages:home'))
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, 'home.html')
+
+    def test_home_shows_three_latest_dated_events_in_slideshow(self):
+        events = [
+            Event.objects.create(
+                title=f'Event {day}',
+                date=date(2030, 1, day),
+                time=time(12),
+            )
+            for day in range(1, 5)
+        ]
+
+        response = self.client.get(reverse('pages:home'))
+
+        self.assertContains(response, 'Check out our latest events!')
+        self.assertContains(response, 'home_events.js')
+        self.assertEqual(
+            list(response.context['latest_events']),
+            [events[3], events[2], events[1]],
+        )
+        self.assertContains(response, 'Event 4')
+        self.assertContains(response, 'Event 3')
+        self.assertContains(response, 'Event 2')
+        self.assertNotContains(response, 'Event 1')
+
+    def test_home_shows_empty_event_message_and_no_slideshow_script(self):
+        response = self.client.get(reverse('pages:home'))
+
+        self.assertContains(response, 'There are no events to display yet.')
+        self.assertNotContains(response, 'home_events.js')
+
+    def test_home_shows_three_most_recent_published_blog_cards(self):
+        posts = [
+            BlogPost.objects.create(
+                title=f'News {index}',
+                slug=f'news-{index}',
+                author=self.master,
+                content='News content',
+                published=True,
+            )
+            for index in range(4)
+        ]
+        BlogPost.objects.create(
+            title='Unpublished news',
+            slug='unpublished-news',
+            author=self.master,
+            content='Draft',
+            published=False,
+        )
+
+        response = self.client.get(reverse('pages:home'))
+
+        self.assertContains(response, 'Read about the latest news on Project ERASE!')
+        self.assertContains(response, 'class="blog-card"')
+        self.assertEqual(
+            list(response.context['latest_posts']),
+            [posts[3], posts[2], posts[1]],
+        )
+        self.assertContains(response, 'News 3')
+        self.assertContains(response, 'News 2')
+        self.assertContains(response, 'News 1')
+        self.assertNotContains(response, 'News 0')
+        self.assertNotContains(response, 'Unpublished news')
+        self.assertContains(response, reverse('blog:post_list'))
+
+    def test_home_shows_empty_news_state_without_published_posts(self):
+        response = self.client.get(reverse('pages:home'))
+
+        self.assertContains(response, 'There are no news posts to display yet.')
+        self.assertEqual(list(response.context['latest_posts']), [])
 
     def test_about_view(self):
         """About page loads successfully."""

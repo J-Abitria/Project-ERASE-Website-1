@@ -45,6 +45,19 @@ deploying the website. The app-specific migrations create the student,
 workshop, report, and event/RSVP tables in this shared database. Existing data
 in a local SQLite file is not copied automatically.
 
+Uploaded images use the local `code/ERASEwebsite/media/` filesystem while
+developing locally. When `CLOUDINARY_URL` is set, Django uses Cloudinary for
+uploaded images instead; set this variable in the Vercel Production
+environment. Vercel's application filesystem is not persistent across
+deployments, so production uploads should use Cloudinary rather than local
+media storage. Blog featured images are deleted from the active media storage
+when their blog post is deleted.
+
+Changing the storage backend does not migrate files already referenced by
+database records. Any existing production uploads that are not already in
+Cloudinary need to be uploaded there and their stored file names updated
+separately.
+
 The production workflow also ensures one Django superuser exists. Add these as
 GitHub Actions repository secrets: `DJANGO_SUPERUSER_USERNAME`,
 `DJANGO_SUPERUSER_EMAIL`, and `DJANGO_SUPERUSER_PASSWORD`. They are needed by

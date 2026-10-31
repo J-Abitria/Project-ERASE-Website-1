@@ -6,11 +6,13 @@ Domain models have been refactored into dedicated apps:
 - Workshop models -> workshops.models
 - Reporting & Analytics models -> reports.models
 """
+import os
 from pathlib import Path
 from uuid import uuid4
 
+from django.conf import settings
 from django.core.validators import FileExtensionValidator, RegexValidator
-from django.core.files.storage import FileSystemStorage
+from django.core.files.storage import Storage, default_storage
 from django.db import models
 from django.utils.deconstruct import deconstructible
 
@@ -31,14 +33,64 @@ DEFAULT_THEME_COLORS = {
 }
 
 
+if settings.CLOUDINARY_URL:
+    from cloudinary import uploader
+    from cloudinary_storage.storage import MediaCloudinaryStorage
+
+    class WebsiteLogoCloudinaryStorage(MediaCloudinaryStorage):
+        def _upload(self, name, content):
+            options = {
+                'use_filename': True,
+                'unique_filename': False,
+                'overwrite': True,
+                'resource_type': self._get_resource_type(name),
+                'tags': self.TAG,
+            }
+            folder = os.path.dirname(name)
+            if folder:
+                options['folder'] = folder
+            return uploader.upload(content, **options)
+
+
 @deconstructible
-class WebsiteLogoStorage(FileSystemStorage):
+class WebsiteLogoStorage(Storage):
+    def _open(self, name, mode='rb'):
+        return default_storage.open(name, mode)
+
+    def _save(self, name, content):
+        if settings.CLOUDINARY_URL:
+            return WebsiteLogoCloudinaryStorage().save(name, content)
+        return default_storage.save(name, content)
+
     def get_available_name(self, name, max_length=None):
-        if self.exists(name):
-            self.delete(name)
+        if settings.CLOUDINARY_URL:
+            return default_storage.get_available_name(name, max_length)
+        if default_storage.exists(name):
+            default_storage.delete(name)
         return name
 
+    def delete(self, name):
+        return default_storage.delete(name)
+
+    def exists(self, name):
+        return default_storage.exists(name)
+
+    def path(self, name):
+        return default_storage.path(name)
+
+    def size(self, name):
+        return default_storage.size(name)
+
+    def url(self, name):
+        return default_storage.url(name)
+
+    def listdir(self, path):
+        return default_storage.listdir(path)
+
     def delete_other_logos(self, name):
+        if settings.CLOUDINARY_URL:
+            return
+
         directory = str(Path(name).parent).replace('\\', '/')
         try:
             _, filenames = self.listdir(directory)

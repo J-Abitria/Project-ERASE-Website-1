@@ -44,6 +44,8 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'cloudinary',
+    'cloudinary_storage',
     'pages',
     'students',
     'workshops',
@@ -175,9 +177,15 @@ CKEDITOR_5_CONFIGS = {
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
+CLOUDINARY_URL = os.environ.get('CLOUDINARY_URL')
+
 STORAGES = {
     "default": {
-        "BACKEND": "django.core.files.storage.FileSystemStorage",
+        "BACKEND": (
+            "cloudinary_storage.storage.MediaCloudinaryStorage"
+            if CLOUDINARY_URL
+            else "django.core.files.storage.FileSystemStorage"
+        ),
     },
     "staticfiles": {
         "BACKEND": "whitenoise.storage.CompressedStaticFilesStorage",

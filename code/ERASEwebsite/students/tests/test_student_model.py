@@ -1,5 +1,6 @@
 import tempfile
 import os
+from unittest.mock import patch
 from django.test import TestCase, override_settings
 from django.core.files.uploadedfile import SimpleUploadedFile
 from students.models import Student
@@ -72,3 +73,15 @@ class StudentModelTests(TestCase):
         student.delete()
         self.assertFalse(Student.objects.filter(name="Ghost Photo Student").exists())
 
+    def test_student_photo_cleanup_uses_storage_api(self):
+        student = Student.objects.create(
+            name="Remote Photo Student",
+            gender="Female",
+            school="Lincoln High School",
+            photo="students/remote-photo.jpg",
+        )
+
+        with patch.object(student.photo.storage, 'delete') as storage_delete:
+            student.delete()
+
+        storage_delete.assert_called_once_with('students/remote-photo.jpg')

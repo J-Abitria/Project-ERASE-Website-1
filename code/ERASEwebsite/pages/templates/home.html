@@ -1,7 +1,12 @@
 {% extends "base.html" %}
-{% load i18n %}
+{% load i18n static %}
 
 {% block title %}{% trans "Home" %} - Project ERASE{% endblock %}
+
+{% block extra_styles %}
+<link rel="stylesheet" href="{% static 'pages/css/home.css' %}?v=1">
+<link rel="stylesheet" href="{% static 'pages/css/blog.css' %}?v=theme-3">
+{% endblock %}
     
 {% block content %}
     <section class="page-header">
@@ -14,14 +19,89 @@
     <main class="container">
         <section class="content">
             <h2>{% trans "About This Project" %}</h2>
-            <p>{% trans "Welcome to the Project ERASE website." %}</p>
+            <p>{% trans "Welcome to the Project ERASE website. We are a student-led organization aiming to improve the quality of students' education in Guatemala." %}</p>
             <p style="margin-top: 1rem;">
                 <a href="{% url 'pages:about' %}" class="btn">{% trans "Learn More" %}</a>
             </p>
+        </section>
+
+        <section class="home-events" aria-labelledby="home-events-heading">
+            <h2 id="home-events-heading">{% trans "Check out our latest events!" %}</h2>
+            {% if latest_events %}
+            <div class="event-slideshow" id="event-slideshow" aria-roledescription="{% trans 'carousel' %}">
+                <div class="event-slides" aria-live="polite">
+                    {% for event in latest_events %}
+                    <article class="event-slide{% if forloop.first %} active{% endif %}"
+                             {% if not forloop.first %}hidden{% endif %}
+                             aria-roledescription="{% trans 'slide' %}"
+                             aria-label="{{ forloop.counter }} of {{ latest_events|length }}">
+                        <div class="event-slide-date">
+                            <span>{{ event.date|date:"M" }}</span>
+                            <strong>{{ event.date|date:"j" }}</strong>
+                            <span>{{ event.date|date:"Y" }}</span>
+                        </div>
+                        <div class="event-slide-content">
+                            <h3>{{ event.title }}</h3>
+                            <p class="event-slide-time">{{ event.time|time:"g:i A" }}</p>
+                            {% if event.description %}<p>{{ event.description|truncatewords:35 }}</p>{% endif %}
+                        </div>
+                    </article>
+                    {% endfor %}
+                </div>
+                {% if latest_events|length > 1 %}
+                <div class="event-slide-controls">
+                    <button type="button" class="event-slide-button" data-slide-direction="-1"
+                            aria-label="{% trans 'Previous event' %}">&lsaquo;</button>
+                    <span class="event-slide-position" aria-live="polite"></span>
+                    <button type="button" class="event-slide-button" data-slide-direction="1"
+                            aria-label="{% trans 'Next event' %}">&rsaquo;</button>
+                </div>
+                {% endif %}
+            </div>
+            {% else %}
+            <p class="home-events-empty">{% trans "There are no events to display yet." %}</p>
+            {% endif %}
+            <a href="{% url 'pages:calendar' %}" class="btn">{% trans "View Events Calendar" %}</a>
+        </section>
+
+        <section class="home-news" aria-labelledby="home-news-heading">
+            <h2 id="home-news-heading">{% trans "Read about the latest news on Project ERASE!" %}</h2>
+            {% if latest_posts %}
+            <div class="blog-post-grid home-blog-post-grid">
+                {% for post in latest_posts %}
+                <article class="blog-card">
+                    {% if post.featured_image %}
+                    <div class="blog-card-image">
+                        <img src="{{ post.featured_image.url }}" alt="{{ post.title }}">
+                    </div>
+                    {% endif %}
+                    <div class="blog-card-content">
+                        <h3 class="blog-card-title">{{ post.title }}</h3>
+                        <div class="blog-card-meta">
+                            {% trans "By" %}
+                            {{ post.author.get_full_name|default:post.author.username }}
+                            {% if post.created_at %} · {{ post.created_at|date:"F j, Y" }}{% endif %}
+                        </div>
+                        <div class="blog-card-actions">
+                            <a href="{% url 'blog:post_detail' post.slug %}" class="btn btn-primary">
+                                {% trans "Read More" %}
+                            </a>
+                        </div>
+                    </div>
+                </article>
+                {% endfor %}
+            </div>
+            {% else %}
+            <p class="home-news-empty">{% trans "There are no news posts to display yet." %}</p>
+            {% endif %}
+            <a href="{% url 'blog:post_list' %}" class="btn home-news-link">{% trans "View All News" %}</a>
         </section>
     </main> 
     <footer>
         <h2>{% trans "Contact Us" %}</h2>
         <p>{% trans "For any and all questions about the project, contact us at" %} <a href="mailto:theprojecterase@gmail.com">theprojecterase@gmail.com</a>.</p>
     </footer>
+    {% if latest_events|length > 1 %}
+    <script src="{% static 'pages/javascript/home_events.js' %}?v=1" defer></script>
+    {% endif %}
 {% endblock %}
