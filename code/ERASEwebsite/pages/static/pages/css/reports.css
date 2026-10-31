@@ -4,6 +4,9 @@
         margin-bottom: 1.5rem;
         border-bottom: 2px solid #e0e0e0;
         padding-bottom: 0;
+        overflow-x: auto;
+        overflow-y: hidden;
+        overscroll-behavior-x: contain;
     }
 
     .tab-btn {
@@ -18,6 +21,7 @@
         margin-bottom: -2px;
         border-radius: 4px 4px 0 0;
         transition: color 0.2s, border-color 0.2s, background 0.2s;
+        flex-shrink: 0;
     }
 
     .tab-btn:hover {
@@ -316,3 +320,21 @@
     .messages-list .info { 
         background: #d1ecf1; color: #0c5460;
     }
+
+@media (max-width: 600px) {
+    .report-tabs { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.25rem; border-bottom: 0; }
+    .tab-btn { padding: 0.75rem 0.5rem; margin-bottom: 0; font-size: 0.9rem; }
+    .report-section { padding: 1.25rem 1rem; }
+    .stat-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.75rem; }
+    .stat-card { padding: 1rem 0.5rem; overflow-wrap: anywhere; }
+    .stat-card:last-child:nth-child(odd) { grid-column: 1 / -1; }
+    .stat-card .stat-number { font-size: 1.6rem; }
+    .report-filter-bar { align-items: stretch; flex-direction: column; gap: 0.5rem; }
+    .report-filter-bar input, .report-filter-bar select { width: 100%; }
+    .report-filter-bar .btn { margin: 0; }
+    .add-entry-form { padding: 1rem; }
+    .form-row { flex-direction: column; }
+    .form-row .form-group { flex: 1 1 auto !important; }
+    .report-table button { min-height: 44px; }
+    .tab-content { padding-bottom: 5rem; }
+}

@@ -87,3 +87,10 @@
     font-size: 0.9rem;
     color: #555;
 }
+
+@media (max-width: 600px) {
+    .btn-grant, .btn-revoke { min-height: 44px; }
+    .manage-users-table th, .manage-users-table td { padding: 0.75rem 1rem; }
+    .manage-users-table td { overflow-wrap: anywhere; }
+    .table-scroll { margin-bottom: 5rem; }
+}
