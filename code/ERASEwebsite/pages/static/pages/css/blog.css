@@ -35,14 +35,18 @@
     margin-right: -24px;
     margin-bottom: 48px;
     padding: 3rem 2rem;
-    background: linear-gradient(135deg, #1368B8 0%, #0283FF 100%);
-    color: #ffffff;
+    background: linear-gradient(
+        135deg,
+        var(--theme-header-background, #1368B8) 0%,
+        var(--theme-accent, #0283FF) 100%
+    );
+    color: var(--theme-header-text, #ffffff);
     text-align: center;
     box-sizing: border-box;
 }
 
 .blog-page > .page-header h1 {
-    color: #ffffff;
+    color: var(--theme-header-text, #ffffff);
     font-size: 2rem;
     line-height: 1.2;
     margin: 0 0 0.5rem;
@@ -50,7 +54,7 @@
 }
 
 .blog-page > .page-header p {
-    color: #ffffff;
+    color: var(--theme-header-text, #ffffff);
     font-size: 1rem;
     line-height: 1.6;
     margin: 0;

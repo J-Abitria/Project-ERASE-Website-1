@@ -117,6 +117,15 @@ select:focus {
     color: white;
 }
 
+.student-db .btn-primary {
+    background: var(--theme-accent, var(--primary));
+    color: var(--theme-accent-text, #ffffff);
+}
+
+.student-db .btn-primary:hover {
+    background: var(--theme-header-background, var(--primary-hover));
+}
+
 .btn-primary:hover {
     background: var(--primary-hover);
     transform: translateY(-1px);

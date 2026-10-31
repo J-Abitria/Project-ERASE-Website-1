@@ -32,6 +32,7 @@ urlpatterns = [
     path('logout/', LogoutView.as_view(next_page='pages:home'), name='logout'),
     path('signup/', views.SignUpView.as_view(), name='signup'),
     path('account/', views.AccountView.as_view(), name='account'),
+    path('account/website-theme/', views.WebsiteThemeView.as_view(), name='website_theme'),
     path('account/delete/', views.DeleteAccountView.as_view(), name='delete_account'),
     path('manage-users/', views.ManageUsersView.as_view(), name='manage_users'),
     path('admin-panel/', views.CustomAdminView.as_view(), name='custom_admin'),

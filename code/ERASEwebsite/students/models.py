@@ -1,4 +1,3 @@
-import os
 from django.db import models
 
 
@@ -49,10 +48,6 @@ class Student(models.Model):
         return self.name
 
     def delete(self, *args, **kwargs):
-        if self.photo and os.path.isfile(self.photo.path):
-            try:
-                os.remove(self.photo.path)
-            except OSError:
-                pass
+        if self.photo:
+            self.photo.storage.delete(self.photo.name)
         super().delete(*args, **kwargs)
-

@@ -1,0 +1,132 @@
+.theme-card {
+    min-width: 0;
+    padding: 2rem;
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+}
+
+.theme-settings-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1.6fr) minmax(260px, 0.8fr);
+    align-items: start;
+    gap: 1.5rem;
+    max-width: 1100px;
+    margin: 0 auto 2.5rem;
+}
+
+.theme-card h2 {
+    margin-bottom: 0.5rem;
+    color: #1368B8;
+}
+
+.theme-card > p {
+    margin-bottom: 1.5rem;
+}
+
+.theme-card > .theme-defaults {
+    color: #666;
+    font-size: 0.9rem;
+}
+
+.theme-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+}
+
+.theme-actions .btn {
+    margin-top: 1rem;
+}
+
+.theme-actions .theme-reset {
+    background: #555;
+}
+
+.theme-field {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.75rem 0;
+    border-bottom: 1px solid #eee;
+}
+
+.theme-field label {
+    font-weight: 600;
+}
+
+.theme-color-control {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    min-width: 9rem;
+}
+
+.theme-color-control input[type="color"] {
+    width: 3rem;
+    height: 2.25rem;
+    padding: 0.15rem;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    background: #fff;
+    cursor: pointer;
+}
+
+.theme-color-control span {
+    font-family: monospace;
+    text-transform: uppercase;
+}
+
+.theme-field .errorlist {
+    color: #c0392b;
+}
+
+.logo-preview {
+    display: grid;
+    place-items: center;
+    min-height: 150px;
+    margin: 1.25rem 0;
+    padding: 1rem;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    background: #f8f8f8;
+}
+
+.logo-preview img {
+    display: block;
+    max-width: 100%;
+    max-height: 110px;
+    object-fit: contain;
+}
+
+.logo-upload-field {
+    align-items: flex-start;
+    flex-direction: column;
+}
+
+@media (max-width: 520px) {
+    .theme-settings-grid {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .theme-card {
+        padding: 1.25rem;
+    }
+
+    .theme-field {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+}
+
+@media (min-width: 521px) and (max-width: 800px) {
+    .theme-settings-grid {
+        grid-template-columns: minmax(0, 1.2fr) minmax(220px, 0.8fr);
+        gap: 1rem;
+    }
+
+    .theme-card {
+        padding: 1.25rem;
+    }
+}

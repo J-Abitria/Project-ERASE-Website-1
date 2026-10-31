@@ -10,17 +10,63 @@ from django.contrib import messages
 from django.core.exceptions import PermissionDenied
 from django.utils.translation import gettext as _
 
-from .forms import AccountEmailForm
+from .forms import AboutProfileForm, AccountEmailForm, WebsiteLogoForm, WebsiteThemeForm
+from .models import AboutProfile, WebsiteTheme
+from event_calendar.models import Event
+from blog.models import BlogPost
 
 
 class HomeView(TemplateView):
     """Render the homepage."""
     template_name = 'home.html'
 
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['latest_events'] = Event.objects.order_by('-date', '-time', '-pk')[:3]
+        context['latest_posts'] = (
+            BlogPost.objects
+            .filter(published=True)
+            .select_related('author')
+            .order_by('-created_at', '-pk')[:3]
+        )
+        return context
 
-class AboutView(TemplateView):
-    """Render the about page."""
+
+class AboutView(View):
+    """Render the About page and let the master manage its profiles."""
     template_name = 'about.html'
+
+    def get(self, request, *args, **kwargs):
+        return self.render_page(request)
+
+    def post(self, request, *args, **kwargs):
+        if not request.user.is_authenticated or not request.user.is_superuser:
+            raise PermissionDenied
+
+        action = request.POST.get('action')
+        if action == 'delete_profile':
+            profile = get_object_or_404(AboutProfile, pk=request.POST.get('profile_id'))
+            profile.delete()
+            messages.success(request, _('Profile removed from the About page.'))
+            return redirect('pages:about')
+
+        if action == 'add_profile':
+            form = AboutProfileForm(request.POST, request.FILES)
+            if form.is_valid():
+                form.save()
+                messages.success(request, _('Profile added to the About page.'))
+                return redirect('pages:about')
+            return self.render_page(request, form=form)
+
+        raise PermissionDenied
+
+    def render_page(self, request, form=None):
+        context = {
+            'profiles': AboutProfile.objects.all(),
+        }
+        if request.user.is_authenticated and request.user.is_superuser:
+            context['profile_form'] = form or AboutProfileForm()
+        return render(request, self.template_name, context)
 
 
 class SignUpView(View):
@@ -105,6 +151,51 @@ class AccountView(LoginRequiredMixin, View):
             return _('Admin')
         groups = user.groups.values_list('name', flat=True)
         return ', '.join(groups) if groups else _('User')
+
+
+class WebsiteThemeView(LoginRequiredMixin, View):
+    """Allow the master account to update the shared website palette."""
+    template_name = 'website_theme.html'
+
+    def get(self, request, *args, **kwargs):
+        if not request.user.is_superuser:
+            raise PermissionDenied
+        theme = WebsiteTheme.objects.get_or_create(pk=1)[0]
+        return render(request, self.template_name, {
+            'theme_form': WebsiteThemeForm(instance=theme),
+            'logo_form': WebsiteLogoForm(instance=theme),
+        })
+
+    def post(self, request, *args, **kwargs):
+        if not request.user.is_superuser:
+            raise PermissionDenied
+        theme = WebsiteTheme.objects.get_or_create(pk=1)[0]
+        action = request.POST.get('action')
+        if action == 'reset':
+            theme.restore_defaults()
+            messages.success(request, _('Website theme restored to the original colors.'))
+            return redirect('pages:website_theme')
+
+        if action == 'upload_logo':
+            form = WebsiteLogoForm(request.POST, request.FILES, instance=theme)
+            if form.is_valid():
+                form.save()
+                messages.success(request, _('Website logo updated successfully.'))
+                return redirect('pages:website_theme')
+            return render(request, self.template_name, {
+                'theme_form': WebsiteThemeForm(instance=theme),
+                'logo_form': form,
+            })
+
+        form = WebsiteThemeForm(request.POST, instance=theme)
+        if form.is_valid():
+            form.save()
+            messages.success(request, _('Website theme updated successfully.'))
+            return redirect('pages:website_theme')
+        return render(request, self.template_name, {
+            'theme_form': form,
+            'logo_form': WebsiteLogoForm(instance=theme),
+        })
 
 
 class DeleteAccountView(LoginRequiredMixin, View):

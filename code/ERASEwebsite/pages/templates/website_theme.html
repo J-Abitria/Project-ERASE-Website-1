@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+{% load i18n static %}
+
+{% block title %}{% trans "Website Theme" %} - Project ERASE{% endblock %}
+
+{% block extra_styles %}
+<link rel="stylesheet" href="{% static 'pages/css/account.css' %}">
+<link rel="stylesheet" href="{% static 'pages/css/website_theme.css' %}">
+{% endblock %}
+
+{% block content %}
+    <section class="page-header">
+        <h1>{% trans "Website Theme" %}</h1>
+    </section>
+
+    <main class="container">
+        {% if messages %}
+        <ul class="messages-list">
+            {% for message in messages %}
+            <li class="{{ message.tags }}">{{ message }}</li>
+            {% endfor %}
+        </ul>
+        {% endif %}
+
+        <div class="theme-settings-grid">
+            <section class="theme-card">
+                <h2>{% trans "Website Color Palette" %}</h2>
+                <p>{% trans "Choose colors for the shared site background, text, navigation, and accents." %}</p>
+                <form method="post">
+                    {% csrf_token %}
+                    {% for field in theme_form %}
+                    <div class="theme-field">
+                        <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                        <div class="theme-color-control">
+                            {{ field }}
+                            <span>{{ field.value }}</span>
+                        </div>
+                        {{ field.errors }}
+                    </div>
+                    {% endfor %}
+                    <div class="theme-actions">
+                        <button type="submit" name="action" value="save" class="btn">{% trans "Save Theme" %}</button>
+                        <button type="submit" name="action" value="reset" class="btn theme-reset" formnovalidate>{% trans "Revert to Original Colors" %}</button>
+                    </div>
+                </form>
+            </section>
+
+            <section class="theme-card logo-card">
+                <h2>{% trans "Website Logo" %}</h2>
+                <p>{% trans "Upload a JPG or PNG image for the top-left site navigation." %}</p>
+                <div class="logo-preview">
+                    {% if website_theme.logo %}
+                    <img src="{{ website_theme.logo.url }}" alt="{% trans 'Current website logo' %}">
+                    {% else %}
+                    <img src="{% static 'pages/images/logo.png' %}" alt="{% trans 'Current default website logo' %}">
+                    {% endif %}
+                </div>
+                <form method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="upload_logo">
+                    <div class="theme-field logo-upload-field">
+                        {{ logo_form.logo }}
+                        {{ logo_form.logo.errors }}
+                    </div>
+                    <button type="button" class="btn" id="choose-logo" aria-controls="{{ logo_form.logo.id_for_label }}">
+                        {% trans "Upload Logo" %}
+                    </button>
+                </form>
+            </section>
+        </div>
+    </main>
+    <script src="{% static 'pages/javascript/website_logo.js' %}?v=1" defer></script>
+{% endblock %}

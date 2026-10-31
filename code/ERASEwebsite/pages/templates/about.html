@@ -5,7 +5,7 @@
     
 {% block extra_styles %}
 {% load static %}
-<link rel="stylesheet" href="{% static 'pages/css/about.css' %}">
+<link rel="stylesheet" href="{% static 'pages/css/about.css' %}?v=2">
 {% endblock %}
     
 {% block content %}
@@ -15,11 +15,68 @@
     </section>
     
     <main class="container">
+        {% if user.is_superuser %}
+        <button type="button" class="about-add-profile-trigger" id="open-profile-dialog">
+            {% trans "Add Profile" %}
+        </button>
+        {% endif %}
+
         <div class="quote">{% trans "A child's access to education shouldn't depend on where they were born." %}</div>
+        {% if profiles %}
+        <section class="about-profiles" aria-labelledby="about-profiles-heading">
+            <h2 id="about-profiles-heading">{% trans "Our Team" %}</h2>
+            <div class="about-profile-list">
+                {% for profile in profiles %}
+                <article class="about-profile">
+                    <img src="{{ profile.image.url }}" alt="{{ profile.name }}">
+                    <div class="about-profile-content">
+                        <h3>{{ profile.name }}</h3>
+                        <p class="about-profile-title">{{ profile.position_title }}</p>
+                        {% if profile.description %}<p>{{ profile.description }}</p>{% endif %}
+                        {% if user.is_superuser %}
+                        <form method="post" class="about-profile-delete">
+                            {% csrf_token %}
+                            <input type="hidden" name="action" value="delete_profile">
+                            <input type="hidden" name="profile_id" value="{{ profile.pk }}">
+                            <button type="submit" class="btn-delete">{% trans "Delete Profile" %}</button>
+                        </form>
+                        {% endif %}
+                    </div>
+                </article>
+                {% endfor %}
+            </div>
+        </section>
+        {% endif %}
+
         <section class="content">
             <h2>{% trans "Contact Us" %}</h2>
             <p>{% trans "For any and all questions about the project, contact us at" %} <a href="mailto:theprojecterase@gmail.com">theprojecterase@gmail.com</a>.</p>
         </section>
+
+        {% if user.is_superuser %}
+        <div class="about-profile-modal-overlay" id="about-profile-dialog"
+             role="dialog" aria-modal="true"
+             aria-labelledby="about-profile-dialog-heading"
+             data-open-on-load="{% if profile_form.errors %}true{% else %}false{% endif %}">
+          <section class="about-profile-modal-box">
+            <div class="about-profile-dialog-header">
+                <h2 id="about-profile-dialog-heading">{% trans "Add About Page Profile" %}</h2>
+                <button type="button" class="about-profile-dialog-close" id="close-profile-dialog"
+                        aria-label="{% trans 'Close' %}">&times;</button>
+            </div>
+            <form method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="add_profile">
+                {{ profile_form.as_p }}
+                <div class="about-profile-dialog-actions">
+                    <button type="button" class="about-profile-cancel" id="cancel-profile-dialog">{% trans "Cancel" %}</button>
+                    <button type="submit" class="btn">{% trans "Add Profile" %}</button>
+                </div>
+            </form>
+          </section>
+        </div>
+        <script src="{% static 'pages/javascript/about_profiles.js' %}?v=2" defer></script>
+        {% endif %}
     </main>
     
 {% endblock %}

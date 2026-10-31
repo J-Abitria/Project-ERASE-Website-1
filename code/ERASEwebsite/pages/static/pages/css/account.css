@@ -32,7 +32,7 @@
 }
 
 .account-field .value {
-    color: #222;
+    color: var(--theme-surface-text, #222);
     text-align: right;
 }
 
