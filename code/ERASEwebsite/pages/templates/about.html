@@ -22,6 +22,35 @@
         {% endif %}
 
         <div class="quote">{% trans "A child's access to education shouldn't depend on where they were born." %}</div>
+        <section class="content">
+            <h2>{% trans "Our Story" %}</h2>
+            <p>
+                Project ERASE is an organization that was founded by Luis Morales Carrera in 2023. Here was his opening words
+                about the project to the Renton community, when he was a student at Hazen High School in Renton:
+            </p>
+            <p style="font-style: italic; font-size: 14px;">
+                Dear Renton community,
+            </p>
+            <p style="font-size: 14px;">
+                I am beyond excited to officially announce the start of Project ERASE. Project ERASE was born from a promise that
+                a little 8-year-old boy made when he crossed the border. A promise based on the fundamental belief that
+                <i>
+                    every child deserves a chance at education,
+                </i> by having access to the educational resources needed. Which should not be limited to where they're born.
+                <br><br>
+                Project ERASE will be centered around teaching about the importance of having access to Educational Resources, and
+                will come to closure by sending school supplies to children in Guatemala. More details coming soon! I hope to have
+                the support from all those who know me and know how passionate I am about driving my community forward with me.
+            </p>
+            <p style="font-size: 14px;">With care,</p>
+            <p style="font-style: italic; font-size: 14px;">Luis Morales Carrera, Project Manager</p>
+            <p>
+                We've been able to extend our support to over 100 students, and sent out over 10,000 supplies over the course of this
+                project. We are committed to raising awareness about the importance of having access to education, and we will continue
+                to give students the support they deserve, year after year.
+            </p>
+        </section>
+
         {% if profiles %}
         <section class="about-profiles" aria-labelledby="about-profiles-heading">
             <h2 id="about-profiles-heading">{% trans "Our Team" %}</h2>
@@ -48,11 +77,6 @@
         </section>
         {% endif %}
 
-        <section class="content">
-            <h2>{% trans "Contact Us" %}</h2>
-            <p>{% trans "For any and all questions about the project, contact us at" %} <a href="mailto:theprojecterase@gmail.com">theprojecterase@gmail.com</a>.</p>
-        </section>
-
         {% if user.is_superuser %}
         <div class="about-profile-modal-overlay" id="about-profile-dialog"
              role="dialog" aria-modal="true"
@@ -78,5 +102,8 @@
         <script src="{% static 'pages/javascript/about_profiles.js' %}?v=2" defer></script>
         {% endif %}
     </main>
-    
+    <footer>
+        <h2>{% trans "Contact Us" %}</h2>
+        <p>{% trans "For any and all questions about the project, contact us at" %} <a href="mailto:theprojecterase@gmail.com">theprojecterase@gmail.com</a>.</p>
+    </footer>
 {% endblock %}
