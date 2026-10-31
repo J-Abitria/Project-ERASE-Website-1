@@ -51,6 +51,13 @@ deployments, so production uploads should use Cloudinary rather than local
 media storage. Blog featured images are deleted from the active media storage
 when their blog post is deleted.
 
+Vercel runs a daily cron job to add completed calendar events to Workshop
+Attendance. Configure the `CRON_SECRET` environment variable in Vercel; the
+cron endpoint rejects requests unless they include its matching bearer token.
+The daily schedule can take up to about 24 hours after an event ends to update
+the report. Events created at or after their scheduled start time are not
+added, and RSVP sign-ups are captured when the attendance row is created.
+
 Changing the storage backend does not migrate files already referenced by
 database records. Any existing production uploads that are not already in
 Cloudinary need to be uploaded there and their stored file names updated

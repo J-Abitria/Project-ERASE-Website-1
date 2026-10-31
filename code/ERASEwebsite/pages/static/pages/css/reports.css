@@ -291,6 +291,126 @@
         background: #c0392b;
     }
 
+.btn-edit {
+    padding: 0.4rem 0.75rem;
+    border: 0;
+    border-radius: 4px;
+    background: var(--theme-accent, #0283FF);
+    color: var(--theme-accent-text, #fff);
+    font: inherit;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.workshop-row-actions {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.workshop-row-actions form { margin: 0; }
+
+.workshop-edit-modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 1200;
+    justify-content: center;
+    align-items: center;
+    padding: 1rem;
+    background: rgba(0, 0, 0, 0.5);
+}
+
+.workshop-edit-modal-overlay.open { display: flex; }
+
+.workshop-edit-modal-box {
+    width: 100%;
+    max-width: 560px;
+    max-height: min(90vh, 52rem);
+    padding: 2rem;
+    overflow: auto;
+    border-radius: 8px;
+    background: var(--theme-surface-background, #fff);
+    color: var(--theme-surface-text, #222);
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2);
+}
+
+.workshop-edit-dialog-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.workshop-edit-dialog-header h2 {
+    margin: 0;
+    color: var(--theme-accent, #1368B8);
+    font-size: 1.3rem;
+}
+
+.workshop-edit-dialog-close {
+    border: 0;
+    padding: 0.1rem 0.4rem;
+    background: none;
+    color: var(--theme-surface-text, #222);
+    font-size: 1.8rem;
+    line-height: 1;
+    cursor: pointer;
+}
+
+.workshop-edit-modal-box form p { margin-bottom: 1rem; }
+
+.workshop-edit-modal-box form label {
+    display: block;
+    margin-bottom: 0.25rem;
+    font-weight: 700;
+    color: var(--theme-text, #555);
+}
+
+.workshop-edit-modal-box input,
+.workshop-edit-modal-box textarea {
+    width: 100%;
+    max-width: 100%;
+    padding: 0.5rem 0.75rem;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    background: var(--theme-page-background, #fff);
+    color: var(--theme-text, #333);
+    font: inherit;
+}
+
+.workshop-edit-modal-box textarea { resize: vertical; }
+
+.workshop-edit-dialog-actions {
+    display: flex;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    margin-top: 1.5rem;
+}
+
+.workshop-edit-dialog-actions .btn { margin-top: 0; }
+
+.workshop-edit-cancel {
+    padding: 0.5rem 1.25rem;
+    border: 2px solid #ccc;
+    border-radius: 5px;
+    background: none;
+    color: var(--theme-text, #555);
+    font: inherit;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.workshop-edit-modal-box .errorlist {
+    margin: 0.3rem 0 0;
+    padding-left: 1.2rem;
+    color: #c0392b;
+}
+
 @media (max-width: 600px) {
     .report-tabs { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.25rem; border-bottom: 0; }
     .tab-btn { padding: 0.75rem 0.5rem; margin-bottom: 0; font-size: 0.9rem; }
@@ -307,4 +427,5 @@
     .form-row .form-group { flex: 1 1 auto !important; }
     .report-table button { min-height: 44px; }
     .tab-content { padding-bottom: 5rem; }
+    .workshop-edit-modal-box { padding: 1.25rem; }
 }

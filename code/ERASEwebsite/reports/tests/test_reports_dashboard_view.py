@@ -99,6 +99,93 @@ class ReportsDashboardViewTests(TestCase):
         self.assertEqual(invalid_res.status_code, 200)
         self.assertTrue(invalid_res.context['workshop_form'].errors)
 
+    def test_staff_can_edit_workshop_record(self):
+        self.client.force_login(self.staff_user)
+        workshop = WorkshopAttendance.objects.create(
+            workshop_name='Original workshop',
+            date='2026-07-15',
+            location='Old location',
+            attendee_count=20,
+            sign_ups=12,
+            notes='Original notes',
+        )
+
+        page = self.client.get(self.url, {'tab': 'workshops'})
+        self.assertContains(page, 'workshop-edit-trigger')
+        self.assertContains(page, 'data-workshop-name="Original workshop"')
+        self.assertContains(page, '<td>12</td>', html=True)
+        self.assertContains(page, 'id="workshop-edit-dialog"')
+        self.assertContains(page, 'id="edit_workshop_name"')
+        self.assertContains(page, 'reports.js?v=2')
+
+        response = self.client.post(self.url, {
+            'form_type': 'edit_workshop',
+            'workshop_id': workshop.pk,
+            'workshop_name': 'Updated workshop',
+            'date': '2026-07-20',
+            'location': 'New location',
+            'attendee_count': 35,
+            'notes': 'Updated notes',
+        })
+
+        self.assertRedirects(response, self.url + '?tab=workshops')
+        workshop.refresh_from_db()
+        self.assertEqual(workshop.workshop_name, 'Updated workshop')
+        self.assertEqual(str(workshop.date), '2026-07-20')
+        self.assertEqual(workshop.location, 'New location')
+        self.assertEqual(workshop.attendee_count, 35)
+        self.assertEqual(workshop.notes, 'Updated notes')
+
+    def test_invalid_workshop_edit_reopens_modal_with_errors(self):
+        self.client.force_login(self.staff_user)
+        workshop = WorkshopAttendance.objects.create(
+            workshop_name='Original workshop',
+            date='2026-07-15',
+            location='Old location',
+            attendee_count=20,
+            notes='Original notes',
+        )
+
+        response = self.client.post(self.url, {
+            'form_type': 'edit_workshop',
+            'workshop_id': workshop.pk,
+            'workshop_name': '',
+            'date': '2026-07-20',
+            'location': 'New location',
+            'attendee_count': 35,
+            'notes': 'Updated notes',
+        })
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.context['active_tab'], 'workshops')
+        self.assertEqual(response.context['editing_workshop_id'], workshop.pk)
+        self.assertTrue(response.context['workshop_edit_form'].errors)
+        self.assertContains(response, 'data-open-on-load="true"')
+        self.assertContains(response, 'This field is required.')
+        workshop.refresh_from_db()
+        self.assertEqual(workshop.workshop_name, 'Original workshop')
+
+    def test_regular_user_cannot_edit_workshop_record(self):
+        self.client.force_login(self.normal_user)
+        workshop = WorkshopAttendance.objects.create(
+            workshop_name='Restricted workshop',
+            date='2026-07-15',
+        )
+
+        response = self.client.post(self.url, {
+            'form_type': 'edit_workshop',
+            'workshop_id': workshop.pk,
+            'workshop_name': 'Unauthorized change',
+            'date': '2026-07-20',
+            'location': '',
+            'attendee_count': 35,
+            'notes': '',
+        })
+
+        self.assertEqual(response.status_code, 403)
+        workshop.refresh_from_db()
+        self.assertEqual(workshop.workshop_name, 'Restricted workshop')
+
     def test_post_student_valid_and_invalid(self):
         """POST form_type='student' creates record on valid input, or re-renders with errors."""
         self.client.login(username="staff", password="Password123!")

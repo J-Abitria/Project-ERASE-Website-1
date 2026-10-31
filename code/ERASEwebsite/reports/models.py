@@ -28,7 +28,15 @@ class WorkshopAttendance(models.Model):
     date           = models.DateField()
     location       = models.CharField(max_length=255, blank=True)
     attendee_count = models.PositiveIntegerField(default=0)
+    sign_ups       = models.PositiveIntegerField(default=0)
     notes          = models.TextField(blank=True)
+    source_event   = models.OneToOneField(
+        'event_calendar.Event',
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name='attendance_record',
+    )
 
     class Meta:
         db_table = 'pages_workshopattendance'
@@ -90,4 +98,3 @@ class SocialMediaConnections(models.Model):
 
     def __str__(self):
         return f"{self.get_platform_display()} – Connected at {self.connected_at}"
-

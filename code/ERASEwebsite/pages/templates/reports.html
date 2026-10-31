@@ -5,7 +5,7 @@
 
 {% block extra_styles %}
 {% load static %}
-<link rel="stylesheet" href="{% static 'pages/css/reports.css' %}">
+<link rel="stylesheet" href="{% static 'pages/css/reports.css' %}?v=2">
 {% endblock %}
 
 {% block content %}
@@ -226,8 +226,9 @@
                             <th>{% trans "Date" %}</th>
                             <th>{% trans "Location" %}</th>
                             <th>{% trans "Attendees" %}</th>
+                            <th>{% trans "Sign Ups" %}</th>
                             <th>{% trans "Notes" %}</th>
-                            {% if request.user.is_staff or request.user.is_superuser %}<th></th>{% endif %}
+                            {% if request.user.is_staff or request.user.is_superuser %}<th>{% trans "Actions" %}</th>{% endif %}
                         </tr>
                     </thead>
                     <tbody>
@@ -237,14 +238,26 @@
                             <td>{{ w.date }}</td>
                             <td>{{ w.location|default:"—" }}</td>
                             <td>{{ w.attendee_count }}</td>
+                            <td>{{ w.sign_ups }}</td>
                             <td>{{ w.notes|default:"—" }}</td>
                             {% if request.user.is_staff or request.user.is_superuser %}
                             <td>
-                                {% trans "Delete this workshop record?" as delete_workshop_confirm %}
-                                <form method="post" action="{% url 'pages:delete_workshop' w.pk %}" onsubmit="return confirm('{{ delete_workshop_confirm|escapejs }}')">
-                                    {% csrf_token %}
-                                    <button type="submit" class="btn-danger">{% trans "Delete" %}</button>
-                                </form>
+                                <div class="workshop-row-actions">
+                                    <button type="button" class="btn-edit workshop-edit-trigger"
+                                            data-workshop-name="{{ w.workshop_name }}"
+                                            data-workshop-date="{{ w.date|date:'Y-m-d' }}"
+                                            data-workshop-location="{{ w.location }}"
+                                            data-workshop-attendees="{{ w.attendee_count }}"
+                                            data-workshop-notes="{{ w.notes }}"
+                                            data-workshop-id="{{ w.pk }}">
+                                        {% trans "Edit" %}
+                                    </button>
+                                    {% trans "Delete this workshop record?" as delete_workshop_confirm %}
+                                    <form method="post" action="{% url 'pages:delete_workshop' w.pk %}" onsubmit="return confirm('{{ delete_workshop_confirm|escapejs }}')">
+                                        {% csrf_token %}
+                                        <button type="submit" class="btn-danger">{% trans "Delete" %}</button>
+                                    </form>
+                                </div>
                             </td>
                             {% endif %}
                         </tr>
@@ -257,6 +270,36 @@
                 {% endif %}
             </div>
         </div>
+
+        {% if request.user.is_staff or request.user.is_superuser %}
+        <div class="workshop-edit-modal-overlay{% if workshop_edit_form.errors %} open{% endif %}"
+             id="workshop-edit-dialog"
+             role="dialog"
+             aria-modal="true"
+             aria-labelledby="workshop-edit-dialog-heading"
+             data-open-on-load="{% if workshop_edit_form.errors %}true{% else %}false{% endif %}">
+            <section class="workshop-edit-modal-box">
+                <div class="workshop-edit-dialog-header">
+                    <h2 id="workshop-edit-dialog-heading">{% trans "Edit Workshop Attendance" %}</h2>
+                    <button type="button" class="workshop-edit-dialog-close" data-close-workshop-dialog
+                            aria-label="{% trans 'Close' %}">&times;</button>
+                </div>
+                <form method="post" action="{% url 'pages:reports' %}?tab=workshops">
+                    {% csrf_token %}
+                    <input type="hidden" name="form_type" value="edit_workshop">
+                    <input type="hidden" name="workshop_id" id="edit-workshop-id"
+                           value="{{ editing_workshop_id }}">
+                    {{ workshop_edit_form.as_p }}
+                    <div class="workshop-edit-dialog-actions">
+                        <button type="button" class="workshop-edit-cancel" data-close-workshop-dialog>
+                            {% trans "Cancel" %}
+                        </button>
+                        <button type="submit" class="btn">{% trans "Save Changes" %}</button>
+                    </div>
+                </form>
+            </section>
+        </div>
+        {% endif %}
 
         <!-- ===================== STUDENTS SUPPORTED TAB ===================== -->
         <div id="tab-students" class="tab-content{% if active_tab == 'students' %} active{% endif %}">
@@ -476,5 +519,5 @@
     </main>
 
 {% load static %}
-<script src="{% static 'pages/javascript/reports.js' %}" defer></script>
+<script src="{% static 'pages/javascript/reports.js' %}?v=2" defer></script>
 {% endblock %}

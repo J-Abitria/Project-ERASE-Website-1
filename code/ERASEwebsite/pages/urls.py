@@ -13,6 +13,7 @@ from reports.views import (
     DeleteWorkshopAttendanceView,
     DeleteStudentSupportView,
     DeleteSocialMediaView,
+    sync_completed_events_cron,
 )
 from event_calendar.views import (
     CalendarView,
@@ -25,6 +26,8 @@ from event_calendar.views import (
 app_name = 'pages'
 
 urlpatterns = [
+    path('api/cron/sync-completed-events', sync_completed_events_cron, name='sync_completed_events_cron'),
+
     # Core & Authentication
     path('', views.HomeView.as_view(), name='home'),
     path('about/', views.AboutView.as_view(), name='about'),

@@ -14,5 +14,11 @@
       "src": "/(.*)",
       "dest": "code/ERASEwebsite/mysite/wsgi.py"
     }
+  ],
+  "crons": [
+    {
+      "path": "/api/cron/sync-completed-events",
+      "schedule": "0 6 * * *"
+    }
   ]
 }
