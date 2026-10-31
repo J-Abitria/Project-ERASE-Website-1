@@ -108,6 +108,7 @@ jobs:
 
       - name: Build Project Artifacts
         env:
+          CLOUDINARY_URL: ${{ secrets.CLOUDINARY_URL }}
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
         run: vercel build --prod --token=${{ secrets.VERCEL_TOKEN }}
 
