@@ -10,7 +10,8 @@ from django.contrib import messages
 from django.core.exceptions import PermissionDenied
 from django.utils.translation import gettext as _
 
-from .forms import AccountEmailForm
+from .forms import AccountEmailForm, WebsiteThemeForm
+from .models import WebsiteTheme
 
 
 class HomeView(TemplateView):
@@ -105,6 +106,30 @@ class AccountView(LoginRequiredMixin, View):
             return _('Admin')
         groups = user.groups.values_list('name', flat=True)
         return ', '.join(groups) if groups else _('User')
+
+
+class WebsiteThemeView(LoginRequiredMixin, View):
+    """Allow the master account to update the shared website palette."""
+    template_name = 'website_theme.html'
+
+    def get(self, request, *args, **kwargs):
+        if not request.user.is_superuser:
+            raise PermissionDenied
+        theme = WebsiteTheme.objects.get_or_create(pk=1)[0]
+        return render(request, self.template_name, {
+            'theme_form': WebsiteThemeForm(instance=theme),
+        })
+
+    def post(self, request, *args, **kwargs):
+        if not request.user.is_superuser:
+            raise PermissionDenied
+        theme = WebsiteTheme.objects.get_or_create(pk=1)[0]
+        form = WebsiteThemeForm(request.POST, instance=theme)
+        if form.is_valid():
+            form.save()
+            messages.success(request, _('Website theme updated successfully.'))
+            return redirect('pages:website_theme')
+        return render(request, self.template_name, {'theme_form': form})
 
 
 class DeleteAccountView(LoginRequiredMixin, View):

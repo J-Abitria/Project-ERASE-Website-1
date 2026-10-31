@@ -9,6 +9,52 @@
     <link rel="stylesheet" href="{% static 'pages/css/base.css' %}">
     <link rel="stylesheet" href="{% static 'pages/css/site_guide.css' %}">
     {% block extra_styles %}{% endblock %}
+    <style>
+        :root {
+            --theme-page-background: {{ website_theme.page_background }};
+            --theme-text: {{ website_theme.text_color }};
+            --theme-surface-background: {{ website_theme.surface_background }};
+            --theme-surface-text: {{ website_theme.surface_text }};
+            --theme-header-background: {{ website_theme.header_background }};
+            --theme-header-text: {{ website_theme.header_text }};
+            --theme-accent: {{ website_theme.accent_color }};
+            --theme-accent-text: {{ website_theme.accent_text }};
+        }
+        body {
+            color: var(--theme-text);
+            background-color: var(--theme-page-background);
+        }
+        header, .page-header {
+            background: linear-gradient(
+                135deg,
+                var(--theme-header-background) 0%,
+                var(--theme-accent) 100%
+            );
+            color: var(--theme-header-text);
+        }
+        .nav-dropdown .dropdown-menu {
+            background: var(--theme-header-background);
+            color: var(--theme-header-text);
+        }
+        header nav a, .page-header {
+            color: var(--theme-header-text);
+        }
+        .btn, .admin-action-list a, .site-guide-launcher,
+        .site-guide-header, .site-guide-message-user {
+            background: var(--theme-accent);
+            color: var(--theme-accent-text);
+        }
+        .account-card, .danger-zone, .login-card, .stat-card,
+        .admin-section, .report-section, .site-guide-panel, .theme-card,
+        main [class*="-card"], main [class*="-section"] {
+            background-color: var(--theme-surface-background);
+            color: var(--theme-surface-text);
+        }
+        .account-card h2, .stat-card .stat-number, .admin-section h2,
+        .report-section h2, .content h2, .theme-card h2 {
+            color: var(--theme-accent);
+        }
+    </style>
 </head>
 <body>
     <header>
@@ -62,6 +108,7 @@
                     <ul class="dropdown-menu">
                         <li><a href="{% url 'pages:account' %}">{% trans "My Account" %}</a></li>
                         {% if user.is_superuser %}
+                        <li><a href="{% url 'pages:website_theme' %}">{% trans "Website Theme" %}<span class="admin-badge">{% trans "Master" %}</span></a></li>
                         <li><a href="{% url 'pages:manage_users' %}" class="nav-admin-link">{% trans "Manage Users" %}<span class="admin-badge">{% trans "Master" %}</span></a></li>
                         {% endif %}
                         {% if user.is_staff or user.is_superuser %}

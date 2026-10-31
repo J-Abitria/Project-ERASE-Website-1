@@ -2,6 +2,8 @@ from django.test import TestCase, Client
 from django.contrib.auth.models import User, Group
 from django.urls import reverse
 
+from pages.models import WebsiteTheme
+
 
 class AccountViewTests(TestCase):
     """Unit tests for user account management and email updates."""
@@ -87,3 +89,74 @@ class AccountViewTests(TestCase):
         self.assertEqual(self.normal_user.email, 'regular@example.com')
         self.assertTrue(response.context['email_form'].errors)
 
+
+class WebsiteThemeViewTests(TestCase):
+    def setUp(self):
+        self.theme_url = reverse('pages:website_theme')
+        self.master = User.objects.create_superuser(
+            username='themeadmin',
+            password='Password123!',
+            email='themeadmin@example.com',
+        )
+        self.regular_user = User.objects.create_user(
+            username='themeuser',
+            password='Password123!',
+        )
+
+    def test_theme_settings_are_master_only(self):
+        self.client.login(username='themeuser', password='Password123!')
+        self.assertEqual(self.client.get(self.theme_url).status_code, 403)
+        self.assertEqual(
+            self.client.post(self.theme_url, {'page_background': '#123456'}).status_code,
+            403,
+        )
+
+    def test_master_can_update_theme_and_changes_apply_sitewide(self):
+        self.client.login(username='themeadmin', password='Password123!')
+        theme_page = self.client.get(self.theme_url)
+        self.assertEqual(theme_page.status_code, 200)
+        self.assertContains(theme_page, 'type="color"')
+        self.assertContains(theme_page, 'Website Theme')
+
+        account_page = self.client.get(reverse('pages:account'))
+        self.assertNotContains(account_page, 'class="account-tabs"')
+        self.assertContains(account_page, 'href="%s"' % self.theme_url)
+        self.assertNotContains(theme_page, 'class="account-tabs"')
+
+        response = self.client.post(self.theme_url, {
+            'page_background': '#123456',
+            'text_color': '#234567',
+            'surface_background': '#345678',
+            'surface_text': '#456789',
+            'header_background': '#56789a',
+            'header_text': '#6789ab',
+            'accent_color': '#789abc',
+            'accent_text': '#89abcd',
+        })
+
+        self.assertRedirects(response, self.theme_url)
+        theme = WebsiteTheme.objects.get(pk=1)
+        self.assertEqual(theme.page_background, '#123456')
+
+        self.client.logout()
+        response = self.client.get(reverse('pages:home'))
+        self.assertContains(response, '--theme-page-background: #123456;')
+
+    def test_invalid_theme_color_is_not_saved(self):
+        self.client.login(username='themeadmin', password='Password123!')
+        theme = WebsiteTheme.objects.create(pk=1)
+        response = self.client.post(self.theme_url, {
+            'page_background': 'red;',
+            'text_color': '#234567',
+            'surface_background': '#345678',
+            'surface_text': '#456789',
+            'header_background': '#56789a',
+            'header_text': '#6789ab',
+            'accent_color': '#789abc',
+            'accent_text': '#89abcd',
+        })
+
+        self.assertEqual(response.status_code, 200)
+        theme.refresh_from_db()
+        self.assertEqual(theme.page_background, '#ffffff')
+        self.assertTrue(response.context['theme_form'].errors)
