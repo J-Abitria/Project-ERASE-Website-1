@@ -25,7 +25,7 @@
     color: white;
     border-radius: 25px;
     padding: 25px;
-    width: 500px;
+    width: min(500px, 100%);
     display: flex;
     align-items: center;
     box-shadow: 0 6px 15px rgba(0,0,0,0.15);
@@ -61,6 +61,8 @@
 .student-details {
     font-size: 20px;
     line-height: 2;
+    min-width: 0;
+    overflow-wrap: anywhere;
 }
 
 .label {
@@ -161,4 +163,31 @@ select:focus {
     max-width: 100%;
     max-height: 70vh;
     display: block;
+}
+
+.bulk-files, .bulk-actions { display: flex; gap: 1rem; flex-wrap: wrap; }
+.bulk-files { margin-bottom: 1.25rem; }
+.bulk-files > div { min-width: 0; flex: 1 1 200px; }
+.bulk-actions { margin-top: 1.5rem; justify-content: flex-end; }
+#bulkPreview { overflow-x: auto; }
+
+@media (max-width: 600px) {
+    .student-db { padding: 1rem 0 6rem; }
+    .student-db .card-row { gap: 1rem; }
+    .student-card { padding: 1.25rem; border-radius: 16px; align-items: flex-start; flex-direction: column; gap: 1rem; }
+    .student-image { width: 100%; height: 220px; margin-right: 0; border-radius: 12px; }
+    .student-details { width: 100%; font-size: 1rem; line-height: 1.7; }
+    .student-details > div + div { margin-top: 0.5rem; }
+    .student-details .btn { width: 100%; }
+    .search-bar, .admin-form { margin: 0 1.25rem 1.25rem; }
+    .search-bar form, .admin-form form { width: 100%; padding: 1rem; flex-direction: column; }
+    .search-bar input, .search-bar select, .admin-form input, .admin-form select { width: 100%; }
+    .admin-form .btn { margin-top: 0; }
+    #bulkModal { padding: 1rem !important; }
+    #bulkModal .modal-content { margin: 0 auto !important; padding: 1.25rem !important; }
+    #previewTable { min-width: 560px; }
+    .bulk-actions { flex-direction: column; }
+    .bulk-actions .btn, .bulk-actions form { width: 100%; margin-top: 0; }
+    .crop-container { max-width: 100%; overflow-y: auto; }
+    .crop-buttons { display: flex; gap: 0.75rem; flex-wrap: wrap; }
 }

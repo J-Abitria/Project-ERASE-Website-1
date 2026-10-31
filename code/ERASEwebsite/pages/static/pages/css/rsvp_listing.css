@@ -48,3 +48,8 @@
         color: #888;
         padding: 3rem 0;
     }
+
+@media (max-width: 600px) {
+    .rsvp-container { margin: 1.5rem auto 6rem; padding: 0 1.25rem; }
+    .event-card { padding: 1.25rem; gap: 1rem; align-items: flex-start; flex-direction: column; overflow-wrap: anywhere; }
+}

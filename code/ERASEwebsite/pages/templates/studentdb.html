@@ -37,7 +37,7 @@
     <div class="modal-content" style="background:white; max-width:1000px; margin: 20px auto; padding:30px; border-radius:16px;">
         <h2>{% trans "Bulk Student Upload" %}</h2>
         
-        <div style="display:flex; gap:20px; margin-bottom: 20px;">
+        <div class="bulk-files">
             <div>
                 <label>{% trans "Select CSV:" %}</label><br>
                 <input type="file" id="bulkCSV" accept=".csv">
@@ -68,7 +68,7 @@
             </table>
         </div>
 
-        <div style="margin-top:30px; display:flex; gap:10px; justify-content: flex-end;">
+        <div class="bulk-actions">
             <button id="cancelBulk" class="btn btn-danger">{% trans "Cancel" %}</button>
             <form id="finalBulkForm" method="POST" enctype="multipart/form-data">
                 {% csrf_token %}
@@ -113,13 +113,13 @@
 
 <div class="search-bar">
     <form>
-        <input type="text" name="search" placeholder="Search by name...">
-        <select name="gender">
+        <input type="search" name="search" placeholder="{% trans 'Search by name...' %}" aria-label="{% trans 'Search by name' %}">
+        <select name="gender" aria-label="{% trans 'Filter by gender' %}">
             <option value="">{% trans "All Genders" %}</option>
             <option value="Male">{% trans "Male" %}</option>
             <option value="Female">{% trans "Female" %}</option>
         </select>
-        <input type="text" name="school" placeholder="{% trans 'Filter by school...' %}">
+        <input type="text" name="school" placeholder="{% trans 'Filter by school...' %}" aria-label="{% trans 'Filter by school' %}">
     </form>
 </div>
 

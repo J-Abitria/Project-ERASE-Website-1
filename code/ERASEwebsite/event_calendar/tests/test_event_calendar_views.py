@@ -38,6 +38,32 @@ class EventCalendarViewsTests(TestCase):
         })
         self.assertEqual(response.status_code, 403)
 
+    def test_mobile_agenda_uses_selected_month_in_chronological_order(self):
+        morning = Event.objects.create(
+            title='Morning workshop', date=self.event.date, time=time(9),
+        )
+        earlier = Event.objects.create(
+            title='Earlier workshop', date=date(2026, 8, 2), time=time(15),
+        )
+        Event.objects.create(title='Next month', date=date(2026, 9, 1), time=time(9))
+
+        response = self.client.get(reverse('pages:calendar'), {'year': 2026, 'month': 8})
+
+        self.assertEqual(list(response.context['month_events']), [earlier, morning, self.event])
+        self.assertNotContains(response, 'Next month')
+
+    def test_mobile_agenda_empty_state_and_escaped_event_details(self):
+        empty = self.client.get(reverse('pages:calendar'), {'year': 2026, 'month': 7})
+        self.assertContains(empty, 'No events scheduled this month.')
+
+        self.event.title = 'Workshop "example" <script>alert(1)</script>'
+        self.event.description = '<img src=x onerror=alert(1)>'
+        self.event.save()
+        response = self.client.get(reverse('pages:calendar'), {'year': 2026, 'month': 8})
+        self.assertNotContains(response, '<script>alert(1)</script>')
+        self.assertNotContains(response, '<img src=x onerror=alert(1)>')
+        self.assertContains(response, '&lt;script&gt;alert(1)&lt;/script&gt;')
+
     def test_add_event_view_success_by_staff(self):
         """Test successful event creation by staff user."""
         self.client.login(username="staff", password="password123")

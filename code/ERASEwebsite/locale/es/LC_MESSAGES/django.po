@@ -722,14 +722,11 @@ msgstr "Se eliminó el lugar del taller."
 msgid "Workshop location saved."
 msgstr "Se guardó el lugar del taller."
 
-msgid "Explore workshop locations and staff-reported supply journeys supporting communities in Guatemala."
-msgstr "Explore los talleres y trayectos de suministros informados por el equipo que apoyan a comunidades en Guatemala."
+msgid "Explore workshop locations and supply journeys supporting communities in Guatemala."
+msgstr "Explore los talleres y trayectos de suministros que apoyan a comunidades en Guatemala."
 
 msgid "Supply journeys"
 msgstr "Trayectos de suministros"
-
-msgid "Routes connect reported endpoints for illustration. Status is updated by the team; this is not live package tracking."
-msgstr "Las rutas unen los extremos informados con fines ilustrativos. El equipo actualiza el estado; esto no es seguimiento en tiempo real."
 
 msgid "Add supply journey"
 msgstr "Agregar trayecto de suministros"
@@ -835,3 +832,33 @@ msgstr "longitud"
 
 msgid "Choose a destination different from the origin."
 msgstr "Elija un destino diferente del origen."
+
+msgid "Menu"
+msgstr "Menú"
+
+msgid "Main navigation"
+msgstr "Navegación principal"
+
+msgid "Events this month"
+msgstr "Eventos de este mes"
+
+msgid "View details"
+msgstr "Ver detalles"
+
+msgid "No events scheduled this month. Check another month or visit again soon."
+msgstr "No hay eventos programados este mes. Consulte otro mes o vuelva pronto."
+
+msgid "Users"
+msgstr "Usuarios"
+
+msgid "Report data"
+msgstr "Datos del informe"
+
+msgid "Search by name"
+msgstr "Buscar por nombre"
+
+msgid "Filter by gender"
+msgstr "Filtrar por género"
+
+msgid "Filter by school"
+msgstr "Filtrar por escuela"
