@@ -112,7 +112,14 @@
                     <ul class="dropdown-menu">
                         <li><a href="{% url 'pages:shipment_map' %}">{% trans "Map" %}</a></li>
                         <li><a href="{% url 'pages:calendar' %}">{% trans "Events" %}</a></li>
-                        <li><a href="{% url 'pages:studentdb' %}">{% trans "Student Database" %}</a></li>
+                        {% if user.is_staff or user.is_superuser %}
+                        <li>
+                            <a href="{% url 'pages:studentdb' %}" class="nav-admin-link">
+                                {% trans "Student Database" %}
+                                <span class="admin-badge">{% trans "Admin" %}</span>
+                            </a>
+                        </li>
+                        {% endif %}
                     </ul>
                     </details>
                 </li>

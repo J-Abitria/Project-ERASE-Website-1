@@ -8,6 +8,14 @@ class StudentDatabaseView(View):
     """Class-Based View for viewing and managing the student database."""
     template_name = 'studentdb.html'
 
+    def dispatch(self, request, *args, **kwargs):
+        if not (
+            request.user.is_authenticated
+            and (request.user.is_staff or request.user.is_superuser)
+        ):
+            raise PermissionDenied
+        return super().dispatch(request, *args, **kwargs)
+
     def get(self, request, *args, **kwargs):
         search = request.GET.get('search', '').strip()
         gender = request.GET.get('gender', '').strip()
@@ -27,9 +35,6 @@ class StudentDatabaseView(View):
         })
 
     def post(self, request, *args, **kwargs):
-        if not (request.user.is_staff or request.user.is_superuser):
-            raise PermissionDenied
-
         action = request.POST.get('action')
         if action == 'add':
             self._add_student(request)

@@ -1,10 +1,8 @@
 # Project ERASE Website
 
-## A website where users can join events, read blog posts from the Project ERASE team, and learn more about how they can assist students in Guatemala.
+**A website where users can join events, read blog posts from the Project ERASE team, and learn more about how they can assist students in Guatemala.**
 
-### A user-friendly website that allows board members to consistently post new information about events and goals for Project ERASE.
-
-### This website intends to serve as an online base of information regarding the operations, contributions, and needs of the Project ERASE team. It should include blog posts that board members can post covering relevant information or events about the project. The website should include an events calendar that provides guests a comprehensive list of activities run by Project ERASE, with the capability to RSVP to certain events. It should also include an interactive map, where board members can add locations that provide pop-up information about the impact the team has had on the locations they send supplies. It is also going to provide AI integration, in the form of a chatbot that can help users navigate to the information they wish to obtain.
+This website intends to serve as an online base of information regarding the operations, contributions, and needs of the Project ERASE team. It should include blog posts that board members can post covering relevant information or events about the project. The website should include an events calendar that provides guests a comprehensive list of activities run by Project ERASE, with the capability to RSVP to certain events. It should also include an interactive map, where board members can add locations that provide pop-up information about the impact the team has had on the locations they send supplies. It is also going to provide AI integration, in the form of a chatbot that can help users navigate to the information they wish to obtain.
 
 ## Installation
 
