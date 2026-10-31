@@ -132,9 +132,6 @@
   outline-offset: 2px;
 }
 
-.map-messages { margin-bottom: 1rem; padding: 0.7rem 1rem; border-left: 4px solid #15855a; border-radius: 7px; background: #ebf8f1; }
-.map-messages p { margin: 0; }
-
 .map-dialog {
   width: min(560px, calc(100vw - 2rem));
   max-height: min(88dvh, 780px);

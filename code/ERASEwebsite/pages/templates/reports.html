@@ -14,15 +14,6 @@
     </section>
 
     <main class="container content">
-
-        {% if messages %}
-        <ul class="messages-list">
-            {% for message in messages %}
-            <li class="{{ message.tags }}">{{ message }}</li>
-            {% endfor %}
-        </ul>
-        {% endif %}
-
         <!-- Tab Navigation -->
         <div class="report-tabs" data-initial-tab="{{ active_tab }}">
             <button class="tab-btn{% if active_tab == 'fundraising' %} active{% endif %}" data-tab="fundraising">{% trans "Fundraising" %}</button>
@@ -487,4 +478,3 @@
 {% load static %}
 <script src="{% static 'pages/javascript/reports.js' %}" defer></script>
 {% endblock %}
-

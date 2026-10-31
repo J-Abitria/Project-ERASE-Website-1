@@ -276,6 +276,30 @@ footer a {
 }
 .table-scroll table { margin-top: 0; }
 
+.site-toast-container {
+    position: fixed;
+    top: 1rem;
+    right: 1rem;
+    z-index: 2000;
+    display: grid;
+    gap: 0.5rem;
+    width: min(28rem, calc(100vw - 2rem));
+    pointer-events: none;
+}
+
+.site-toast {
+    padding: 0.8rem 1rem;
+    border-radius: 6px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    font-weight: 600;
+    pointer-events: auto;
+}
+
+.site-toast-success { background: #d4edda; color: #155724; }
+.site-toast-error { background: #f8d7da; color: #721c24; }
+.site-toast-warning { background: #fff3cd; color: #856404; }
+.site-toast-info { background: #d1ecf1; color: #0c5460; }
+
 @media (max-width: 900px) {
     nav {
         height: auto;
@@ -346,6 +370,7 @@ footer a {
 }
 
 @media (max-width: 600px) {
+    .site-toast-container { top: 0.75rem; right: 0.75rem; width: calc(100vw - 1.5rem); }
     .container { padding: 0 1.25rem; }
     .container.content { padding-left: 1.25rem; padding-right: 1.25rem; }
     .page-header { padding: 2.25rem 1.25rem; margin-bottom: 1.5rem; }

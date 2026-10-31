@@ -73,9 +73,17 @@ class EventCalendarViewsTests(TestCase):
             'time': '14:00',
             'description': 'Created by staff',
             'hasRSVP': True,
-        })
-        self.assertEqual(response.status_code, 302)
+        }, follow=True)
+        self.assertRedirects(
+            response,
+            f"{reverse('pages:calendar')}?month=8&year=2026",
+        )
+        self.assertContains(response, 'Event added successfully!')
+        self.assertContains(response, 'data-site-toast')
         self.assertTrue(Event.objects.filter(title='Staff Added Event').exists())
+
+        next_page_response = self.client.get(reverse('pages:calendar'))
+        self.assertNotContains(next_page_response, 'Event added successfully!')
 
     def test_rsvp_toggle(self):
         """Test RSVP toggling (create then delete on second POST)."""
@@ -107,4 +115,3 @@ class EventCalendarViewsTests(TestCase):
         detail_res = self.client.get(detail_url)
         self.assertEqual(detail_res.status_code, 200)
         self.assertContains(detail_res, "normal")
-

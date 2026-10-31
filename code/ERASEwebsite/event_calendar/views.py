@@ -2,9 +2,11 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse
 from django.views import View
 from django.views.generic import ListView, DetailView
+from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.core.exceptions import PermissionDenied
 from django.db.models import Count
+from django.utils.translation import gettext as _
 
 from .models import Event, RSVP
 from .forms import EventForm
@@ -50,7 +52,6 @@ class CalendarView(View):
         context = {
             **calendar_context,
             'event_form': EventForm(),
-            'event_added': request.GET.get('event_added') == '1',
             'rsvped_ids': list(rsvped_ids),
             'month_events': month_events,
         }
@@ -66,7 +67,8 @@ class AddEventView(LoginRequiredMixin, StaffRequiredMixin, View):
             form.save()
             month = form.cleaned_data['date'].month
             year = form.cleaned_data['date'].year
-            return redirect(f"{reverse('pages:calendar')}?month={month}&year={year}&event_added=1")
+            messages.success(request, _('Event added successfully!'))
+            return redirect(f"{reverse('pages:calendar')}?month={month}&year={year}")
         return redirect('pages:calendar')
 
     def get(self, request, *args, **kwargs):
@@ -117,4 +119,3 @@ class RSVPDetailView(LoginRequiredMixin, StaffRequiredMixin, DetailView):
         context = super().get_context_data(**kwargs)
         context['rsvps'] = self.object.rsvps.select_related('user').order_by('reserved_at')
         return context
-

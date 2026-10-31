@@ -171,10 +171,23 @@
     </header>
     <script src="{% static 'pages/javascript/navigation.js' %}" defer></script>
 
+    {% if messages %}
+    <div class="site-toast-container" aria-live="polite" aria-relevant="additions">
+        {% for message in messages %}
+        <div class="site-toast site-toast-{{ message.tags }}" role="status" data-site-toast>
+            {{ message }}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
     {% block content %}{% endblock %}
 
     {% include 'site_guide.html' %}
     <script src="{% static 'pages/javascript/site_guide.js' %}?v=1" defer></script>
+    {% if messages %}
+    <script src="{% static 'pages/javascript/messages.js' %}?v=1" defer></script>
+    {% endif %}
 
 </body>
 </html>

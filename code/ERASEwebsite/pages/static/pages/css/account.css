@@ -85,25 +85,6 @@
 
 .btn-delete:hover { background: #a93226; }
 
-.messages-list {
-    list-style: none;
-    padding: 0;
-    margin: 0 auto 1rem;
-    max-width: 560px;
-}
-
-.messages-list li {
-    padding: 0.7rem 1rem;
-    border-radius: 6px;
-    margin-bottom: 0.45rem;
-    font-size: 0.92rem;
-}
-
-.messages-list .success { background: #d4edda; color: #155724; }
-.messages-list .error   { background: #f8d7da; color: #721c24; }
-.messages-list .warning { background: #fff3cd; color: #856404; }
-.messages-list .info    { background: #d1ecf1; color: #0c5460; }
-
 .email-edit {
     margin-top: 1.1rem;
     padding-top: 1rem;

@@ -205,24 +205,6 @@
     border-color: #999;
 }
 
-#toast {
-    position: fixed;
-    bottom: 2rem;
-    right: 2rem;
-    background: #1368B8;
-    color: white;
-    padding: 1rem 1.5rem;
-    border-radius: 6px;
-    font-weight: bold;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-    z-index: 300;
-    animation: fadeout 0.5s ease 3s forwards;
-}
-
-@keyframes fadeout {
-    to { opacity: 0; visibility: hidden; }
-}
-
 .event-pill {
     background-color: #0283FF;
     color: white;
@@ -355,5 +337,4 @@
     .modal-box { padding: 1.25rem; }
     .modal-actions { flex-wrap: wrap; }
     .modal-actions button { min-height: 44px; }
-    #toast { left: 1rem; right: 1rem; bottom: 5rem; }
 }

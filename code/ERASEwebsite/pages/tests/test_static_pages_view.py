@@ -157,14 +157,22 @@ class StaticPagesViewTests(TestCase):
                     'position_title': 'Program Director',
                     'description': '',
                 })
-                self.assertRedirects(response, reverse('pages:about'))
+                self.assertEqual(response.status_code, 302)
+                self.assertEqual(response['Location'], reverse('pages:about'))
 
                 profile = AboutProfile.objects.get()
                 self.assertEqual(profile.name, 'Alex Example')
                 self.assertEqual(profile.position_title, 'Program Director')
                 self.assertEqual(profile.description, '')
                 self.assertTrue(profile.image.storage.exists(profile.image.name))
-                self.assertContains(self.client.get(reverse('pages:about')), 'Alex Example')
+                about_response = self.client.get(reverse('pages:about'))
+                self.assertContains(about_response, 'Alex Example')
+                self.assertContains(about_response, 'Profile added to the About page.')
+                self.assertContains(about_response, 'data-site-toast')
+                self.assertContains(about_response, 'messages.js?v=1')
+
+                reports_response = self.client.get(reverse('pages:reports'))
+                self.assertNotContains(reports_response, 'Profile added to the About page.')
 
                 response = self.client.post(reverse('pages:about'), {
                     'action': 'delete_profile',
