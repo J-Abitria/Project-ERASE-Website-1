@@ -133,6 +133,9 @@
 }
 
 .map-dialog {
+  position: fixed;
+  inset: 0;
+  margin: auto;
   width: min(560px, calc(100vw - 2rem));
   max-height: min(88dvh, 780px);
   padding: 1.4rem;
@@ -172,7 +175,7 @@
   .map-intro > div { min-width: 0; }
   .map-button { min-height: 44px; max-width: 100%; white-space: normal; }
   .map-text-button { min-height: 44px; }
-  .map-dialog { margin: auto; overflow-y: auto; overscroll-behavior: contain; }
+  .map-dialog { overflow-y: auto; overscroll-behavior: contain; }
   .map-dialog-close {
     display: inline-flex;
     align-items: center;
