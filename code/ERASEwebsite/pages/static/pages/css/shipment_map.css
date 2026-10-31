@@ -19,7 +19,7 @@
   color: white;
 }
 
-.map-intro h1 { margin-bottom: 0.35rem; font-size: clamp(1.6rem, 2.8vw, 2.35rem); line-height: 1.2; }
+.map-intro h2 { margin-bottom: 0.35rem; font-size: clamp(1.6rem, 2.8vw, 2.35rem); line-height: 1.2; }
 .map-intro p:last-child { margin-bottom: 0; max-width: 48rem; color: #e9f4ff; }
 .map-eyebrow { margin-bottom: 0.45rem; font-size: 0.76rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; }
 

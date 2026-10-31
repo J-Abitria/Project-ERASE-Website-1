@@ -74,7 +74,7 @@
                 {% csrf_token %}
                 <input type="hidden" name="action" value="bulk_add">
                 <!-- Data will be injected here via JS -->
-                <button type="submit" id="confirmBulk" class="btn btn-primary" style="background: #0A84FF;" disabled>{% trans "Confirm & Upload All" %}</button>
+                <button type="submit" id="confirmBulk" class="btn btn-primary" disabled>{% trans "Confirm & Upload All" %}</button>
             </form>
         </div>
     </div>
@@ -104,7 +104,7 @@
 </div>
 
 <div class="admin-actions" style="text-align: center; margin-bottom: 20px;">
-    <button type="button" id="openBulkModal" class="btn btn-primary" style="background: #0A84FF;">
+    <button type="button" id="openBulkModal" class="btn btn-primary">
         {% trans "Bulk Upload (CSV + ZIP)" %}
     </button>
 </div>

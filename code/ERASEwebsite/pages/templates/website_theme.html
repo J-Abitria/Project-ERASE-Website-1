@@ -23,7 +23,7 @@
         {% endif %}
 
         <section class="theme-card">
-            <h2>{% trans "Application colors" %}</h2>
+            <h2>{% trans "Website Color Palette" %}</h2>
             <p>{% trans "Choose colors for the shared site background, text, navigation, and accents." %}</p>
             <form method="post">
                 {% csrf_token %}
@@ -37,7 +37,10 @@
                     {{ field.errors }}
                 </div>
                 {% endfor %}
-                <button type="submit" class="btn">{% trans "Save Theme" %}</button>
+                <div class="theme-actions">
+                    <button type="submit" name="action" value="save" class="btn">{% trans "Save Theme" %}</button>
+                    <button type="submit" name="action" value="reset" class="btn theme-reset" formnovalidate>{% trans "Revert to Original Colors" %}</button>
+                </div>
             </form>
         </section>
     </main>

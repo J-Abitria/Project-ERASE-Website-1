@@ -142,6 +142,13 @@ class WebsiteThemeViewTests(TestCase):
         response = self.client.get(reverse('pages:home'))
         self.assertContains(response, '--theme-page-background: #123456;')
 
+        calendar_response = self.client.get(reverse('pages:calendar'))
+        self.assertContains(calendar_response, 'pages/css/calendar.css?v=theme-2')
+        self.assertContains(calendar_response, '--theme-header-background: #56789a;')
+
+        blog_response = self.client.get(reverse('blog:post_list'))
+        self.assertContains(blog_response, 'pages/css/blog.css?v=theme-3')
+
     def test_invalid_theme_color_is_not_saved(self):
         self.client.login(username='themeadmin', password='Password123!')
         theme = WebsiteTheme.objects.create(pk=1)
@@ -160,3 +167,30 @@ class WebsiteThemeViewTests(TestCase):
         theme.refresh_from_db()
         self.assertEqual(theme.page_background, '#ffffff')
         self.assertTrue(response.context['theme_form'].errors)
+
+    def test_master_can_restore_original_theme_colors(self):
+        self.client.login(username='themeadmin', password='Password123!')
+        theme = WebsiteTheme.objects.create(
+            pk=1,
+            page_background='#123456',
+            text_color='#234567',
+            surface_background='#345678',
+            surface_text='#456789',
+            header_background='#56789a',
+            header_text='#6789ab',
+            accent_color='#789abc',
+            accent_text='#89abcd',
+        )
+
+        response = self.client.post(self.theme_url, {'action': 'reset'})
+
+        self.assertRedirects(response, self.theme_url)
+        theme.refresh_from_db()
+        self.assertEqual(theme.page_background, '#ffffff')
+        self.assertEqual(theme.text_color, '#333333')
+        self.assertEqual(theme.surface_background, '#ffffff')
+        self.assertEqual(theme.surface_text, '#222222')
+        self.assertEqual(theme.header_background, '#1368B8')
+        self.assertEqual(theme.header_text, '#ffffff')
+        self.assertEqual(theme.accent_color, '#0283FF')
+        self.assertEqual(theme.accent_text, '#ffffff')

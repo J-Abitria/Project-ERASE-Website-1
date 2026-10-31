@@ -16,6 +16,25 @@
     margin-bottom: 1.5rem;
 }
 
+.theme-card > .theme-defaults {
+    color: #666;
+    font-size: 0.9rem;
+}
+
+.theme-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+}
+
+.theme-actions .btn {
+    margin-top: 1rem;
+}
+
+.theme-actions .theme-reset {
+    background: #555;
+}
+
 .theme-field {
     display: flex;
     justify-content: space-between;

@@ -13,11 +13,15 @@
 {% endblock %}
 
 {% block content %}
+<section class="page-header">
+  <h1>{% trans "Interactive Map" %}</h1>
+</section>
+
 <main class="map-page container" lang="{{ MAP_LANGUAGE }}">
   <section class="map-intro">
     <div>
       <p class="map-eyebrow">{% trans "Project ERASE in the community" %}</p>
-      <h1>{% trans "Explore our impact map" %}</h1>
+      <h2>{% trans "Explore our impact map" %}</h2>
       <p>{% trans "Explore workshop locations and staff-reported supply journeys supporting communities in Guatemala." %}</p>
     </div>
     {% if can_manage_map %}

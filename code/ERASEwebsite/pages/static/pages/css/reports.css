@@ -90,8 +90,8 @@
     }
 
     .report-table th {
-        background: #1368B8;
-        color: #fff;
+        background: var(--theme-header-background, #1368B8);
+        color: var(--theme-header-text, #fff);
         padding: 0.7rem 1rem;
         text-align: left;
         font-weight: 600;

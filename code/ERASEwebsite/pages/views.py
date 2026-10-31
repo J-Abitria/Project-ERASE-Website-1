@@ -124,6 +124,11 @@ class WebsiteThemeView(LoginRequiredMixin, View):
         if not request.user.is_superuser:
             raise PermissionDenied
         theme = WebsiteTheme.objects.get_or_create(pk=1)[0]
+        if request.POST.get('action') == 'reset':
+            theme.restore_defaults()
+            messages.success(request, _('Website theme restored to the original colors.'))
+            return redirect('pages:website_theme')
+
         form = WebsiteThemeForm(request.POST, instance=theme)
         if form.is_valid():
             form.save()

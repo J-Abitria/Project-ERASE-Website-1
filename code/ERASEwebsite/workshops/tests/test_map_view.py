@@ -58,6 +58,11 @@ class MapViewTests(TestCase):
         self.assertNotContains(response, 'class="edit-workshop"')
         self.assertContains(response, 'id="map-config"')
 
+    def test_map_page_has_shared_interactive_map_header(self):
+        response = self.client.get(self.url)
+        self.assertContains(response, '<section class="page-header">')
+        self.assertContains(response, '<h1>Interactive Map</h1>')
+
     def test_only_staff_can_mutate_locations(self):
         data = self.workshop_data()
         self.assertEqual(self.client.post(self.url, data).status_code, 302)
