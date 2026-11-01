@@ -75,11 +75,19 @@ document.addEventListener('DOMContentLoaded', () => {
                 const asset = await uploadResponse.json();
                 if (!uploadResponse.ok) {
                     if (uploadResponse.status === 401) {
+                        const cloudinaryMessage = typeof asset.error === 'string'
+                            ? asset.error
+                            : asset.error?.message;
                         throw new Error(
-                            'Cloudinary authorization failed. Verify the Vercel Production CLOUDINARY_URL and upload permissions.'
+                            cloudinaryMessage
+                                ? `Cloudinary authorization failed: ${cloudinaryMessage}`
+                                : 'Cloudinary authorization failed. Verify the Vercel Production CLOUDINARY_URL and upload permissions.'
                         );
                     }
-                    throw new Error(asset.error?.message || 'Cloudinary rejected the image upload.');
+                    throw new Error(
+                        (typeof asset.error === 'string' ? asset.error : asset.error?.message)
+                        || 'Cloudinary rejected the image upload.'
+                    );
                 }
 
                 publicIdInput.value = asset.public_id;

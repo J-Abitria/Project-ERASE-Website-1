@@ -103,7 +103,7 @@ class CloudinaryDirectUploadTests(TestCase):
 
         about_response = self.client.get(reverse('pages:about'))
         self.assertContains(about_response, 'data-cloudinary-upload="about_profile"')
-        self.assertContains(about_response, 'cloudinary_upload.js?v=1')
+        self.assertContains(about_response, 'cloudinary_upload.js?v=2')
 
         theme_response = self.client.get(reverse('pages:website_theme'))
         self.assertContains(theme_response, 'data-cloudinary-upload="website_logo"')
