@@ -14,14 +14,6 @@
     </section>
 
     <main class="container">
-        {% if messages %}
-        <ul class="messages-list">
-            {% for message in messages %}
-            <li class="{{ message.tags }}">{{ message }}</li>
-            {% endfor %}
-        </ul>
-        {% endif %}
-
         <div class="theme-settings-grid">
             <section class="theme-card">
                 <h2>{% trans "Website Color Palette" %}</h2>

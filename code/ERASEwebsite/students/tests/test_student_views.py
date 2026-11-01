@@ -21,7 +21,8 @@ class StudentViewsTests(TestCase):
         self.s2 = Student.objects.create(name="Lucy Van Pelt", gender="Female", school="East High")
 
     def test_studentdb_view_get_unfiltered(self):
-        """GET request without query params displays all students."""
+        """Staff accounts can view all students without filters."""
+        self.client.force_login(self.staff_user)
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, 'studentdb.html')
@@ -30,12 +31,41 @@ class StudentViewsTests(TestCase):
         self.assertContains(response, "Lucy Van Pelt")
 
     def test_studentdb_view_get_with_filters(self):
-        """GET request with query params filters the displayed students."""
+        """Superusers can filter the student database."""
+        self.client.force_login(self.superuser)
         response = self.client.get(self.url, {'search': 'Charlie', 'gender': 'Male', 'school': 'West'})
         self.assertEqual(response.status_code, 200)
         self.assertEqual(len(response.context['students']), 1)
         self.assertContains(response, "Charlie Brown")
         self.assertNotContains(response, "Lucy Van Pelt")
+
+    def test_studentdb_get_unauthenticated_or_normal_user_forbidden(self):
+        """Only staff and superuser accounts can view the student database."""
+        anonymous_response = self.client.get(self.url)
+        self.assertEqual(anonymous_response.status_code, 403)
+
+        self.client.force_login(self.normal_user)
+        normal_user_response = self.client.get(self.url)
+        self.assertEqual(normal_user_response.status_code, 403)
+
+    def test_studentdb_navigation_link_is_admin_only_and_badged(self):
+        """The Resources menu shows the database link with its Admin badge only to admins."""
+        studentdb_menu_link = '<a href="/studentdb/" class="nav-admin-link">'
+        anonymous_response = self.client.get(reverse('pages:home'))
+        self.assertNotContains(anonymous_response, studentdb_menu_link)
+
+        self.client.force_login(self.normal_user)
+        normal_user_response = self.client.get(reverse('pages:home'))
+        self.assertNotContains(normal_user_response, studentdb_menu_link)
+
+        self.client.force_login(self.staff_user)
+        staff_response = self.client.get(reverse('pages:home'))
+        self.assertContains(staff_response, studentdb_menu_link)
+        self.assertContains(
+            staff_response,
+            '<span class="admin-badge">Admin</span>',
+            html=True,
+        )
 
     def test_studentdb_post_unauthenticated_or_normal_user_forbidden(self):
         """Normal authenticated user and anonymous users cannot POST to modify student records."""
@@ -164,4 +194,3 @@ class StudentViewsTests(TestCase):
         response = self.client.post(self.url, post_data)
         self.assertRedirects(response, self.url)
         self.assertEqual(Student.objects.count(), 2)
-

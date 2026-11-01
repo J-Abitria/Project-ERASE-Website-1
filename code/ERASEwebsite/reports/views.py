@@ -1,9 +1,12 @@
 from io import BytesIO
+import hmac
 
-from django.http import HttpResponse, HttpResponseBadRequest
+from django.conf import settings
+from django.http import HttpResponse, HttpResponseBadRequest, JsonResponse
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse
 from django.views import View
+from django.views.decorators.http import require_GET
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.core.exceptions import PermissionDenied
@@ -17,6 +20,21 @@ from reportlab.platypus import SimpleDocTemplate, Spacer, Table, TableStyle, Par
 from .models import FundingEntry, WorkshopAttendance, StudentSupport, SocialMediaMetric
 from .forms import FundingEntryForm, WorkshopAttendanceForm, StudentSupportForm, SocialMediaMetricForm
 from .services import ReportsAnalyticsService
+from event_calendar.services import sync_completed_events
+
+
+@require_GET
+def sync_completed_events_cron(request):
+    cron_secret = settings.CRON_SECRET
+    if not cron_secret:
+        return JsonResponse({'error': 'Cron authentication is not configured.'}, status=503)
+
+    authorization = request.headers.get('Authorization', '')
+    if not hmac.compare_digest(authorization, f'Bearer {cron_secret}'):
+        return JsonResponse({'error': 'Unauthorized.'}, status=401)
+
+    created_count = sync_completed_events()
+    return JsonResponse({'created': created_count})
 
 
 class StaffRequiredMixin(UserPassesTestMixin):
@@ -46,6 +64,8 @@ class ReportsDashboardView(LoginRequiredMixin, StaffRequiredMixin, View):
         context = {
             'funding_form': FundingEntryForm(),
             'workshop_form': WorkshopAttendanceForm(),
+            'workshop_edit_form': WorkshopAttendanceForm(auto_id='edit_%s'),
+            'editing_workshop_id': '',
             'student_form': StudentSupportForm(),
             'social_form': SocialMediaMetricForm(),
             'active_tab': active_tab,
@@ -63,6 +83,7 @@ class ReportsDashboardView(LoginRequiredMixin, StaffRequiredMixin, View):
         handlers = {
             'funding': self._handle_funding,
             'workshop': self._handle_workshop,
+            'edit_workshop': self._handle_workshop_edit,
             'student': self._handle_student,
             'social': self._handle_social,
         }
@@ -89,6 +110,27 @@ class ReportsDashboardView(LoginRequiredMixin, StaffRequiredMixin, View):
             return redirect(reverse('pages:reports') + '?tab=workshops')
         return self._render_with_form_error(request, 'workshops', workshop_form=form)
 
+    def _handle_workshop_edit(self, request):
+        workshop = get_object_or_404(
+            WorkshopAttendance,
+            pk=request.POST.get('workshop_id'),
+        )
+        form = WorkshopAttendanceForm(
+            request.POST,
+            instance=workshop,
+            auto_id='edit_%s',
+        )
+        if form.is_valid():
+            form.save()
+            messages.success(request, _('Workshop record updated.'))
+            return redirect(reverse('pages:reports') + '?tab=workshops')
+        return self._render_with_form_error(
+            request,
+            'workshops',
+            workshop_edit_form=form,
+            editing_workshop_id=workshop.pk,
+        )
+
     def _handle_student(self, request):
         form = StudentSupportForm(request.POST)
         if form.is_valid():
@@ -109,6 +151,11 @@ class ReportsDashboardView(LoginRequiredMixin, StaffRequiredMixin, View):
         context = {
             'funding_form': form_overrides.get('funding_form', FundingEntryForm()),
             'workshop_form': form_overrides.get('workshop_form', WorkshopAttendanceForm()),
+            'workshop_edit_form': form_overrides.get(
+                'workshop_edit_form',
+                WorkshopAttendanceForm(auto_id='edit_%s'),
+            ),
+            'editing_workshop_id': form_overrides.get('editing_workshop_id', ''),
             'student_form': form_overrides.get('student_form', StudentSupportForm()),
             'social_form': form_overrides.get('social_form', SocialMediaMetricForm()),
             'active_tab': tab_name,
@@ -188,9 +235,16 @@ class ReportsPdfView(LoginRequiredMixin, StaffRequiredMixin, View):
                     styles['Normal'],
                 ),
                 self._table(
-                    [_('Workshop'), _('Date'), _('Location'), _('Attendees'), _('Notes')],
+                    [_('Workshop'), _('Date'), _('Location'), _('Attendees'), _('Sign Ups'), _('Notes')],
                     [
-                        [entry.workshop_name, entry.date, entry.location or '-', entry.attendee_count, entry.notes or '-']
+                        [
+                            entry.workshop_name,
+                            entry.date,
+                            entry.location or '-',
+                            entry.attendee_count,
+                            entry.sign_ups,
+                            entry.notes or '-',
+                        ]
                         for entry in workshops['workshops']
                     ],
                 ),
@@ -281,4 +335,3 @@ class DeleteSocialMediaView(BaseReportDeleteView):
     model = SocialMediaMetric
     tab_name = 'social'
     success_message = _lazy('Social media entry deleted.')
-

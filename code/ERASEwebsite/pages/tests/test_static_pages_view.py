@@ -1,12 +1,13 @@
 from datetime import date, time
 from io import BytesIO
 from tempfile import TemporaryDirectory
+from unittest.mock import patch
 
 from PIL import Image
+from django.conf import settings
 from django.contrib.auth.models import User
 from django.core.files.uploadedfile import SimpleUploadedFile
-from django.test import TestCase, Client
-from django.test import override_settings
+from django.test import Client, TestCase, override_settings
 from django.urls import reverse
 
 from blog.models import BlogPost
@@ -157,14 +158,22 @@ class StaticPagesViewTests(TestCase):
                     'position_title': 'Program Director',
                     'description': '',
                 })
-                self.assertRedirects(response, reverse('pages:about'))
+                self.assertEqual(response.status_code, 302)
+                self.assertEqual(response['Location'], reverse('pages:about'))
 
                 profile = AboutProfile.objects.get()
                 self.assertEqual(profile.name, 'Alex Example')
                 self.assertEqual(profile.position_title, 'Program Director')
                 self.assertEqual(profile.description, '')
                 self.assertTrue(profile.image.storage.exists(profile.image.name))
-                self.assertContains(self.client.get(reverse('pages:about')), 'Alex Example')
+                about_response = self.client.get(reverse('pages:about'))
+                self.assertContains(about_response, 'Alex Example')
+                self.assertContains(about_response, 'Profile added to the About page.')
+                self.assertContains(about_response, 'data-site-toast')
+                self.assertContains(about_response, 'messages.js?v=1')
+
+                reports_response = self.client.get(reverse('pages:reports'))
+                self.assertNotContains(reports_response, 'Profile added to the About page.')
 
                 response = self.client.post(reverse('pages:about'), {
                     'action': 'delete_profile',
@@ -173,6 +182,39 @@ class StaticPagesViewTests(TestCase):
                 self.assertRedirects(response, reverse('pages:about'))
                 self.assertFalse(AboutProfile.objects.exists())
                 self.assertFalse(profile.image.storage.exists(profile.image.name))
+
+    def test_cloudinary_upload_is_used_for_about_profile_when_configured(self):
+        if not settings.CLOUDINARY_URL:
+            self.skipTest('CLOUDINARY_URL is not configured')
+
+        image = BytesIO()
+        Image.new('RGB', (1, 1), color='blue').save(image, format='PNG')
+        image.seek(0)
+        self.client.force_login(self.master)
+
+        with patch(
+            'cloudinary.uploader.upload',
+            return_value={'public_id': 'media/about/profiles/cloudinary-profile'},
+        ) as cloudinary_upload:
+            response = self.client.post(reverse('pages:about'), {
+                'action': 'add_profile',
+                'image': SimpleUploadedFile(
+                    'team-member.png',
+                    image.getvalue(),
+                    content_type='image/png',
+                ),
+                'name': 'Cloudinary Example',
+                'position_title': 'Program Director',
+                'description': '',
+            })
+
+        self.assertEqual(response.status_code, 302)
+        profile = AboutProfile.objects.get(name='Cloudinary Example')
+        self.assertEqual(
+            profile.image.name,
+            'media/about/profiles/cloudinary-profile',
+        )
+        cloudinary_upload.assert_called_once()
 
     def test_only_master_can_add_or_delete_about_profiles(self):
         response = self.client.post(reverse('pages:about'), {'action': 'add_profile'})

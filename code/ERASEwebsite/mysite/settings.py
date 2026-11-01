@@ -178,6 +178,7 @@ STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
 CLOUDINARY_URL = os.environ.get('CLOUDINARY_URL')
+CRON_SECRET = os.environ.get('CRON_SECRET')
 
 STORAGES = {
     "default": {

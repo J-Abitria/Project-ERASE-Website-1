@@ -18,4 +18,45 @@
     const validTabs = new Set(['fundraising', 'workshops', 'students', 'social']);
     const initialTab = validTabs.has(urlTab) ? urlTab : (validTabs.has(serverTab) ? serverTab : 'fundraising');
     activateTab(initialTab);
+
+    const dialog = document.getElementById('workshop-edit-dialog');
+    const closeButtons = dialog?.querySelectorAll('[data-close-workshop-dialog]') ?? [];
+    const editButtons = document.querySelectorAll('.workshop-edit-trigger');
+    const editForm = dialog?.querySelector('form');
+    let activeEditTrigger = null;
+    const closeDialog = () => {
+        dialog?.classList.remove('open');
+        activeEditTrigger?.focus();
+    };
+
+    editButtons.forEach(button => {
+        button.addEventListener('click', () => {
+            if (!dialog || !editForm) return;
+
+            editForm.elements.workshop_id.value = button.dataset.workshopId;
+            editForm.elements.workshop_name.value = button.dataset.workshopName;
+            editForm.elements.date.value = button.dataset.workshopDate;
+            editForm.elements.location.value = button.dataset.workshopLocation;
+            editForm.elements.attendee_count.value = button.dataset.workshopAttendees;
+            editForm.elements.notes.value = button.dataset.workshopNotes;
+            activeEditTrigger = button;
+            dialog.classList.add('open');
+            dialog.querySelector('[data-close-workshop-dialog]')?.focus();
+        });
+    });
+
+    closeButtons.forEach(button => button.addEventListener('click', closeDialog));
+    dialog?.addEventListener('click', event => {
+        if (event.target === dialog) closeDialog();
+    });
+    document.addEventListener('keydown', event => {
+        if (event.key === 'Escape' && dialog?.classList.contains('open')) {
+            closeDialog();
+        }
+    });
+
+    if (dialog?.dataset.openOnLoad === 'true') {
+        dialog.classList.add('open');
+        dialog.querySelector('[data-close-workshop-dialog]')?.focus();
+    }
 })();

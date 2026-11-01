@@ -112,7 +112,14 @@
                     <ul class="dropdown-menu">
                         <li><a href="{% url 'pages:shipment_map' %}">{% trans "Map" %}</a></li>
                         <li><a href="{% url 'pages:calendar' %}">{% trans "Events" %}</a></li>
-                        <li><a href="{% url 'pages:studentdb' %}">{% trans "Student Database" %}</a></li>
+                        {% if user.is_staff or user.is_superuser %}
+                        <li>
+                            <a href="{% url 'pages:studentdb' %}" class="nav-admin-link">
+                                {% trans "Student Database" %}
+                                <span class="admin-badge">{% trans "Admin" %}</span>
+                            </a>
+                        </li>
+                        {% endif %}
                     </ul>
                     </details>
                 </li>
@@ -164,10 +171,23 @@
     </header>
     <script src="{% static 'pages/javascript/navigation.js' %}" defer></script>
 
+    {% if messages %}
+    <div class="site-toast-container" aria-live="polite" aria-relevant="additions">
+        {% for message in messages %}
+        <div class="site-toast site-toast-{{ message.tags }}" role="status" data-site-toast>
+            {{ message }}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
     {% block content %}{% endblock %}
 
     {% include 'site_guide.html' %}
     <script src="{% static 'pages/javascript/site_guide.js' %}?v=1" defer></script>
+    {% if messages %}
+    <script src="{% static 'pages/javascript/messages.js' %}?v=1" defer></script>
+    {% endif %}
 
 </body>
 </html>
