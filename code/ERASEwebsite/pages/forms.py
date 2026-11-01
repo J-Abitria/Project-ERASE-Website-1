@@ -57,8 +57,9 @@ class WebsiteLogoForm(forms.ModelForm):
         }
 
     def __init__(self, *args, **kwargs):
+        direct_upload = kwargs.pop('direct_upload', False)
         super().__init__(*args, **kwargs)
-        self.fields['logo'].required = True
+        self.fields['logo'].required = not direct_upload
 
 
 class AboutProfileForm(forms.ModelForm):
@@ -77,3 +78,8 @@ class AboutProfileForm(forms.ModelForm):
             }),
             'description': forms.Textarea(attrs={'rows': 4}),
         }
+
+    def __init__(self, *args, **kwargs):
+        direct_upload = kwargs.pop('direct_upload', False)
+        super().__init__(*args, **kwargs)
+        self.fields['image'].required = not direct_upload

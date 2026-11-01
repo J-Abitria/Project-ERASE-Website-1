@@ -47,13 +47,20 @@
                     <img src="{% static 'pages/images/logo.png' %}" alt="{% trans 'Current default website logo' %}">
                     {% endif %}
                 </div>
-                <form method="post" enctype="multipart/form-data">
+                <form method="post" enctype="multipart/form-data"
+                      {% if cloudinary_direct_upload %}data-cloudinary-upload="website_logo"
+                      data-signature-url="{% url 'pages:cloudinary_upload_signature' %}"{% endif %}>
                     {% csrf_token %}
                     <input type="hidden" name="action" value="upload_logo">
+                    <input type="hidden" name="direct_upload_public_id" value="{{ request.POST.direct_upload_public_id|default:'' }}">
+                    <input type="hidden" name="direct_upload_version" value="{{ request.POST.direct_upload_version|default:'' }}">
+                    <input type="hidden" name="direct_upload_signature" value="{{ request.POST.direct_upload_signature|default:'' }}">
+                    {% if cloudinary_direct_upload %}<p role="status" data-cloudinary-upload-status hidden></p>{% endif %}
                     <div class="theme-field logo-upload-field">
                         {{ logo_form.logo }}
                         {{ logo_form.logo.errors }}
                     </div>
+                    {{ logo_form.non_field_errors }}
                     <button type="button" class="btn" id="choose-logo" aria-controls="{{ logo_form.logo.id_for_label }}">
                         {% trans "Upload Logo" %}
                     </button>
@@ -61,5 +68,8 @@
             </section>
         </div>
     </main>
+    {% if cloudinary_direct_upload %}
+    <script src="{% static 'pages/javascript/cloudinary_upload.js' %}?v=1" defer></script>
+    {% endif %}
     <script src="{% static 'pages/javascript/website_logo.js' %}?v=1" defer></script>
 {% endblock %}

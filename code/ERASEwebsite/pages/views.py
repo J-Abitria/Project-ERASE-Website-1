@@ -12,6 +12,10 @@ from django.utils.translation import gettext as _
 
 from .forms import AboutProfileForm, AccountEmailForm, WebsiteLogoForm, WebsiteThemeForm
 from .models import AboutProfile, WebsiteTheme
+from .cloudinary_uploads import (
+    get_verified_cloudinary_upload,
+    has_cloudinary_upload_fields,
+)
 from event_calendar.models import Event
 from blog.models import BlogPost
 
@@ -51,9 +55,22 @@ class AboutView(View):
             return redirect('pages:about')
 
         if action == 'add_profile':
-            form = AboutProfileForm(request.POST, request.FILES)
+            image_public_id, invalid_upload = get_verified_cloudinary_upload(
+                request.POST,
+                'about_profile',
+            )
+            form = AboutProfileForm(
+                request.POST,
+                request.FILES,
+                direct_upload=has_cloudinary_upload_fields(request.POST),
+            )
+            if invalid_upload:
+                form.add_error(None, _('The image upload could not be verified. Please upload it again.'))
             if form.is_valid():
-                form.save()
+                profile = form.save(commit=False)
+                if image_public_id:
+                    profile.image = image_public_id
+                profile.save()
                 messages.success(request, _('Profile added to the About page.'))
                 return redirect('pages:about')
             return self.render_page(request, form=form)
@@ -177,9 +194,23 @@ class WebsiteThemeView(LoginRequiredMixin, View):
             return redirect('pages:website_theme')
 
         if action == 'upload_logo':
-            form = WebsiteLogoForm(request.POST, request.FILES, instance=theme)
+            logo_public_id, invalid_upload = get_verified_cloudinary_upload(
+                request.POST,
+                'website_logo',
+            )
+            form = WebsiteLogoForm(
+                request.POST,
+                request.FILES,
+                instance=theme,
+                direct_upload=has_cloudinary_upload_fields(request.POST),
+            )
+            if invalid_upload:
+                form.add_error(None, _('The image upload could not be verified. Please upload it again.'))
             if form.is_valid():
-                form.save()
+                theme = form.save(commit=False)
+                if logo_public_id:
+                    theme.logo = logo_public_id
+                theme.save()
                 messages.success(request, _('Website logo updated successfully.'))
                 return redirect('pages:website_theme')
             return render(request, self.template_name, {

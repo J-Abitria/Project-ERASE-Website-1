@@ -28,8 +28,14 @@
                 <div class="blog-form-errors">{{ form.non_field_errors }}</div>
             {% endif %}
 
-            <form method="POST" enctype="multipart/form-data" class="blog-post-form">
+            <form method="POST" enctype="multipart/form-data" class="blog-post-form"
+                  {% if cloudinary_direct_upload %}data-cloudinary-upload="blog_image"
+                  data-signature-url="{% url 'pages:cloudinary_upload_signature' %}"{% endif %}>
                 {% csrf_token %}
+                <input type="hidden" name="direct_upload_public_id" value="{{ request.POST.direct_upload_public_id|default:'' }}">
+                <input type="hidden" name="direct_upload_version" value="{{ request.POST.direct_upload_version|default:'' }}">
+                <input type="hidden" name="direct_upload_signature" value="{{ request.POST.direct_upload_signature|default:'' }}">
+                {% if cloudinary_direct_upload %}<p role="status" data-cloudinary-upload-status hidden></p>{% endif %}
 
                 <div class="blog-form-group">
                     <label for="{{ form.title.id_for_label }}">{% trans "Title" %}</label>
@@ -115,4 +121,7 @@
         </div>
     </div>
 </div>
+{% if cloudinary_direct_upload %}
+<script src="{% static 'pages/javascript/cloudinary_upload.js' %}?v=1" defer></script>
+{% endif %}
 {% endblock %}

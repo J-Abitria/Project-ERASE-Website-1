@@ -4,6 +4,7 @@ from django.conf import settings
 from django.conf.urls.static import static
 
 from . import views
+from .cloudinary_uploads import cloudinary_upload_signature
 from students.views import StudentDatabaseView
 from workshops.views import ShipmentMapView
 from reports.views import (
@@ -27,6 +28,7 @@ app_name = 'pages'
 
 urlpatterns = [
     path('api/cron/sync-completed-events', sync_completed_events_cron, name='sync_completed_events_cron'),
+    path('api/cloudinary/upload-signature/', cloudinary_upload_signature, name='cloudinary_upload_signature'),
 
     # Core & Authentication
     path('', views.HomeView.as_view(), name='home'),

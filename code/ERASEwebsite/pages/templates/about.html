@@ -88,9 +88,15 @@
                 <button type="button" class="about-profile-dialog-close" id="close-profile-dialog"
                         aria-label="{% trans 'Close' %}">&times;</button>
             </div>
-            <form method="post" enctype="multipart/form-data">
+            <form method="post" enctype="multipart/form-data"
+                  {% if cloudinary_direct_upload %}data-cloudinary-upload="about_profile"
+                  data-signature-url="{% url 'pages:cloudinary_upload_signature' %}"{% endif %}>
                 {% csrf_token %}
                 <input type="hidden" name="action" value="add_profile">
+                <input type="hidden" name="direct_upload_public_id" value="{{ request.POST.direct_upload_public_id|default:'' }}">
+                <input type="hidden" name="direct_upload_version" value="{{ request.POST.direct_upload_version|default:'' }}">
+                <input type="hidden" name="direct_upload_signature" value="{{ request.POST.direct_upload_signature|default:'' }}">
+                {% if cloudinary_direct_upload %}<p role="status" data-cloudinary-upload-status hidden></p>{% endif %}
                 {{ profile_form.as_p }}
                 <div class="about-profile-dialog-actions">
                     <button type="button" class="about-profile-cancel" id="cancel-profile-dialog">{% trans "Cancel" %}</button>
@@ -99,6 +105,9 @@
             </form>
           </section>
         </div>
+        {% if cloudinary_direct_upload %}
+        <script src="{% static 'pages/javascript/cloudinary_upload.js' %}?v=1" defer></script>
+        {% endif %}
         <script src="{% static 'pages/javascript/about_profiles.js' %}?v=2" defer></script>
         {% endif %}
     </main>

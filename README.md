@@ -51,6 +51,16 @@ deployments, so production uploads should use Cloudinary rather than local
 media storage. Blog featured images are deleted from the active media storage
 when their blog post is deleted.
 
+In production, About profile images, the site logo, and blog featured images
+upload directly from the browser to Cloudinary. Django issues a short-lived
+signed upload request and verifies Cloudinary's response before saving the
+asset reference, so image bytes do not pass through the Vercel function.
+Configure `CLOUDINARY_URL` with the valid API key, API secret, and cloud name
+from the Cloudinary console in Vercel Production. A Cloudinary
+`AuthorizationRequired` response is an authentication/authorization failure;
+verify those credentials and the key's upload permissions in Vercel without
+sharing the secret.
+
 Vercel runs a daily cron job to add completed calendar events to Workshop
 Attendance. Configure the `CRON_SECRET` environment variable in Vercel; the
 cron endpoint rejects requests unless they include its matching bearer token.

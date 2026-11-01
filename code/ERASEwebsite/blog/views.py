@@ -3,9 +3,13 @@ from django.views import View
 from django.views.generic import ListView, DetailView
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.core.exceptions import PermissionDenied
+from django.utils.translation import gettext as _
 
 from .models import BlogPost
 from .forms import BlogPostForm
+from pages.cloudinary_uploads import (
+    get_verified_cloudinary_upload,
+)
 
 
 class StaffRequiredMixin(UserPassesTestMixin):
@@ -62,9 +66,17 @@ class BlogCreateView(LoginRequiredMixin, StaffRequiredMixin, View):
 
     def post(self, request, *args, **kwargs):
         form = BlogPostForm(request.POST, request.FILES)
+        image_public_id, invalid_upload = get_verified_cloudinary_upload(
+            request.POST,
+            'blog_image',
+        )
+        if invalid_upload:
+            form.add_error(None, _('The image upload could not be verified. Please upload it again.'))
 
         if form.is_valid():
             post = form.save(commit=False)
+            if image_public_id:
+                post.featured_image = image_public_id
             post.author = request.user
             post.save()
 
@@ -99,9 +111,18 @@ class BlogEditView(LoginRequiredMixin, StaffRequiredMixin, View):
             request.FILES,
             instance=post
         )
+        image_public_id, invalid_upload = get_verified_cloudinary_upload(
+            request.POST,
+            'blog_image',
+        )
+        if invalid_upload:
+            form.add_error(None, _('The image upload could not be verified. Please upload it again.'))
 
         if form.is_valid():
-            form.save()
+            post = form.save(commit=False)
+            if image_public_id:
+                post.featured_image = image_public_id
+            post.save()
             return redirect('blog:manage_posts')
 
         return render(request, self.template_name, {
