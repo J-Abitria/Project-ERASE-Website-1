@@ -1,6 +1,6 @@
-from types import SimpleNamespace
 from unittest.mock import patch
 
+import cloudinary
 from django.contrib.auth.models import User
 from django.test import TestCase, override_settings
 from django.urls import reverse
@@ -9,7 +9,7 @@ from blog.models import BlogPost
 from pages.models import AboutProfile, WebsiteTheme
 
 
-@override_settings(CLOUDINARY_URL='cloudinary://test')
+@override_settings(CLOUDINARY_URL='cloudinary://test-key:test-secret@test-cloud')
 class CloudinaryDirectUploadTests(TestCase):
     def setUp(self):
         self.master = User.objects.create_superuser(
@@ -23,24 +23,9 @@ class CloudinaryDirectUploadTests(TestCase):
             is_staff=True,
         )
 
-    @patch('pages.cloudinary_uploads.cloudinary.utils.cloudinary_api_url')
-    @patch('pages.cloudinary_uploads.cloudinary.utils.sign_request')
     @patch('pages.cloudinary_uploads.cloudinary.config')
-    def test_master_can_request_upload_signature(self, config, sign_request, upload_url):
-        config.return_value = SimpleNamespace(
-            cloud_name='test-cloud',
-            api_key='test-key',
-            api_secret='test-secret',
-            signature_algorithm='sha1',
-            signature_version=2,
-        )
-        sign_request.return_value = {
-            'timestamp': 123,
-            'public_id': 'media/about/profiles/generated-id',
-            'overwrite': False,
-            'api_key': 'test-key',
-            'signature': 'signed',
-        }
+    @patch('pages.cloudinary_uploads.cloudinary.utils.cloudinary_api_url')
+    def test_master_can_request_upload_signature(self, upload_url, config):
         upload_url.return_value = 'https://api.cloudinary.com/v1_1/test-cloud/image/upload'
         self.client.force_login(self.master)
 
@@ -51,32 +36,41 @@ class CloudinaryDirectUploadTests(TestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.json()['upload_url'], upload_url.return_value)
-        self.assertEqual(response.json()['params']['signature'], 'signed')
+        params = response.json()['params']
+        self.assertEqual(params['api_key'], 'test-key')
+        self.assertEqual(
+            params['signature'],
+            cloudinary.utils.api_sign_request(
+                {
+                    'timestamp': params['timestamp'],
+                    'public_id': params['public_id'],
+                    'tags': 'media',
+                },
+                'test-secret',
+                signature_version=1,
+            ),
+        )
         self.assertRegex(
-            sign_request.call_args.args[0]['public_id'],
+            params['public_id'],
             r'^media/about/profiles/[0-9a-f]{32}$',
         )
-        self.assertNotIn('overwrite', sign_request.call_args.args[0])
-        self.assertEqual(sign_request.call_args.args[0]['tags'], 'media')
+        self.assertNotIn('overwrite', params)
+        self.assertEqual(params['tags'], 'media')
+        config.assert_not_called()
 
     @patch('pages.cloudinary_uploads.cloudinary.config')
     def test_signature_endpoint_reports_incomplete_cloudinary_credentials(self, config):
-        config.return_value = SimpleNamespace(
-            cloud_name='test-cloud',
-            api_key='',
-            api_secret='',
-            signature_algorithm='sha1',
-            signature_version=2,
-        )
         self.client.force_login(self.master)
 
-        response = self.client.post(
-            reverse('pages:cloudinary_upload_signature'),
-            {'purpose': 'about_profile'},
-        )
+        with override_settings(CLOUDINARY_URL='cloudinary://test-cloud'):
+            response = self.client.post(
+                reverse('pages:cloudinary_upload_signature'),
+                {'purpose': 'about_profile'},
+            )
 
         self.assertEqual(response.status_code, 503)
         self.assertIn('credentials', response.json()['error'].lower())
+        config.assert_not_called()
 
     def test_only_allowed_roles_can_request_upload_signatures(self):
         response = self.client.post(
@@ -112,31 +106,26 @@ class CloudinaryDirectUploadTests(TestCase):
         blog_response = self.client.get(reverse('blog:post_create'))
         self.assertContains(blog_response, 'data-cloudinary-upload="blog_image"')
 
-    @patch('pages.cloudinary_uploads.cloudinary.utils.verify_api_response_signature', return_value=True)
-    def test_direct_about_profile_upload_saves_verified_public_id(self, verify_signature):
+    def test_direct_about_profile_upload_saves_verified_public_id(self):
         self.client.force_login(self.master)
+        public_id = 'media/about/profiles/profile-id'
+        signature = self.response_signature(public_id, 123)
 
         response = self.client.post(reverse('pages:about'), {
             'action': 'add_profile',
             'name': 'Direct Upload Member',
             'position_title': 'Director',
             'description': '',
-            'direct_upload_public_id': 'media/about/profiles/profile-id',
+            'direct_upload_public_id': public_id,
             'direct_upload_version': '123',
-            'direct_upload_signature': 'verified',
+            'direct_upload_signature': signature,
         })
 
         self.assertEqual(response.status_code, 302)
         profile = AboutProfile.objects.get(name='Direct Upload Member')
-        self.assertEqual(profile.image.name, 'media/about/profiles/profile-id')
-        verify_signature.assert_called_once_with(
-            'media/about/profiles/profile-id',
-            '123',
-            'verified',
-        )
+        self.assertEqual(profile.image.name, public_id)
 
-    @patch('pages.cloudinary_uploads.cloudinary.utils.verify_api_response_signature', return_value=False)
-    def test_invalid_direct_upload_signature_is_rejected(self, verify_signature):
+    def test_invalid_direct_upload_signature_is_rejected(self):
         self.client.force_login(self.master)
 
         response = self.client.post(reverse('pages:about'), {
@@ -152,8 +141,7 @@ class CloudinaryDirectUploadTests(TestCase):
         self.assertFalse(AboutProfile.objects.exists())
         self.assertTrue(response.context['profile_form'].non_field_errors())
 
-    @patch('pages.cloudinary_uploads.cloudinary.utils.verify_api_response_signature', return_value=True)
-    def test_direct_upload_cannot_attach_an_asset_from_another_folder(self, verify_signature):
+    def test_direct_upload_cannot_attach_an_asset_from_another_folder(self):
         self.client.force_login(self.master)
 
         response = self.client.post(reverse('pages:about'), {
@@ -167,37 +155,44 @@ class CloudinaryDirectUploadTests(TestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertFalse(AboutProfile.objects.exists())
-        verify_signature.assert_not_called()
 
-    @patch('pages.cloudinary_uploads.cloudinary.utils.verify_api_response_signature', return_value=True)
-    def test_direct_logo_upload_saves_verified_public_id(self, verify_signature):
+    def test_direct_logo_upload_saves_verified_public_id(self):
         self.client.force_login(self.master)
+        public_id = 'media/website/logo'
 
         response = self.client.post(reverse('pages:website_theme'), {
             'action': 'upload_logo',
-            'direct_upload_public_id': 'media/website/logo',
+            'direct_upload_public_id': public_id,
             'direct_upload_version': '123',
-            'direct_upload_signature': 'verified',
+            'direct_upload_signature': self.response_signature(public_id, 123),
         })
 
         self.assertEqual(response.status_code, 302)
-        self.assertEqual(WebsiteTheme.objects.get(pk=1).logo.name, 'media/website/logo')
-        verify_signature.assert_called_once()
+        self.assertEqual(WebsiteTheme.objects.get(pk=1).logo.name, public_id)
 
-    @patch('pages.cloudinary_uploads.cloudinary.utils.verify_api_response_signature', return_value=True)
-    def test_direct_blog_image_upload_saves_verified_public_id(self, verify_signature):
+    def test_direct_blog_image_upload_saves_verified_public_id(self):
         self.client.force_login(self.staff)
+        public_id = 'media/blog/article-image'
 
         response = self.client.post(reverse('blog:post_create'), {
             'title': 'Direct uploaded article',
             'slug': 'direct-uploaded-article',
             'content': 'Article content',
-            'direct_upload_public_id': 'media/blog/article-image',
+            'direct_upload_public_id': public_id,
             'direct_upload_version': '123',
-            'direct_upload_signature': 'verified',
+            'direct_upload_signature': self.response_signature(public_id, 123),
         })
 
         self.assertEqual(response.status_code, 302)
         article = BlogPost.objects.get(slug='direct-uploaded-article')
-        self.assertEqual(article.featured_image.name, 'media/blog/article-image')
-        verify_signature.assert_called_once()
+        self.assertEqual(article.featured_image.name, public_id)
+
+    @staticmethod
+    def response_signature(public_id, version):
+        import cloudinary
+
+        return cloudinary.utils.api_sign_request(
+            {'public_id': public_id, 'version': version},
+            'test-secret',
+            signature_version=1,
+        )

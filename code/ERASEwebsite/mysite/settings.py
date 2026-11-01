@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/6.0/ref/settings/
 
 import os
 from pathlib import Path
+from urllib.parse import unquote, urlsplit
 
 import dj_database_url
 
@@ -179,6 +180,22 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
 CLOUDINARY_URL = os.environ.get('CLOUDINARY_URL')
 CRON_SECRET = os.environ.get('CRON_SECRET')
+cloudinary_url = urlsplit(CLOUDINARY_URL or '')
+CLOUDINARY_STORAGE = {}
+if (
+    cloudinary_url.scheme == 'cloudinary'
+    and cloudinary_url.hostname
+    and cloudinary_url.username
+    and cloudinary_url.password
+):
+    CLOUDINARY_STORAGE = {
+        'CLOUD_NAME': cloudinary_url.hostname,
+        'API_KEY': unquote(cloudinary_url.username),
+        'API_SECRET': unquote(cloudinary_url.password),
+        'PRIVATE_CDN': bool(cloudinary_url.path),
+    }
+    if cloudinary_url.path:
+        CLOUDINARY_STORAGE['SECURE_DISTRIBUTION'] = cloudinary_url.path.lstrip('/')
 
 STORAGES = {
     "default": {
